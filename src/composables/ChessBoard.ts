@@ -1,4 +1,5 @@
 import ChessPiece from './ChessPiece'
+import Drawer from './drawer'
 
 class ChessBoard {
   private board: number[][]
@@ -30,7 +31,7 @@ class ChessBoard {
     this.drawBoard()
   }
 
-  public drawBoard() {
+  private drawBoard() {
     this.background.clearRect(0, 0, this.width, this.height)
     this.background.strokeStyle = '#000'
     this.background.lineWidth = 2
@@ -42,30 +43,35 @@ class ChessBoard {
     const offsetX = this.gridSize / 2
     const offsetY = this.gridSize / 2
 
+    const lineDrawer = Drawer.drawLine.bind(null, this.background)
+
     // Draw horizontal lines
     for (let i = 0; i < 10; i++) {
-      this.background.beginPath()
-      this.background.moveTo(offsetX, offsetY + i * this.gridSize)
-      this.background.lineTo(offsetX + 8 * this.gridSize, offsetY + i * this.gridSize)
-      this.background.stroke()
+      lineDrawer(
+        offsetX,
+        offsetY + i * this.gridSize,
+        offsetX + 8 * this.gridSize,
+        offsetY + i * this.gridSize,
+      )
     }
 
     // Draw vertical lines - but not across the river
     for (let i = 0; i < 9; i++) {
-      // Top half vertical lines (0-4)
-      this.background.beginPath()
-      this.background.moveTo(offsetX + i * this.gridSize, offsetY)
-      this.background.lineTo(offsetX + i * this.gridSize, offsetY + 4 * this.gridSize)
-      this.background.stroke()
+      lineDrawer(
+        offsetX + i * this.gridSize,
+        offsetY,
+        offsetX + i * this.gridSize,
+        offsetY + 4 * this.gridSize,
+      )
 
-      // Bottom half vertical lines (5-9)
-      this.background.beginPath()
-      this.background.moveTo(offsetX + i * this.gridSize, offsetY + 5 * this.gridSize)
-      this.background.lineTo(offsetX + i * this.gridSize, offsetY + 9 * this.gridSize)
-      this.background.stroke()
+      lineDrawer(
+        offsetX + i * this.gridSize,
+        offsetY + 5 * this.gridSize,
+        offsetX + i * this.gridSize,
+        offsetY + 9 * this.gridSize,
+      )
     }
 
-    // Draw the river text
     this.background.font = '20px Arial'
     this.background.fillStyle = '#000'
     this.background.textAlign = 'center'
@@ -74,36 +80,47 @@ class ChessBoard {
 
     // Draw the palaces (九宫)
     // Top palace
-    this.background.beginPath()
-    this.background.moveTo(offsetX + 3 * this.gridSize, offsetY)
-    this.background.lineTo(offsetX + 5 * this.gridSize, offsetY + 2 * this.gridSize)
-    this.background.stroke()
+    lineDrawer(
+      offsetX + 3 * this.gridSize,
+      offsetY,
+      offsetX + 5 * this.gridSize,
+      offsetY + 2 * this.gridSize,
+    )
 
-    this.background.beginPath()
-    this.background.moveTo(offsetX + 5 * this.gridSize, offsetY)
-    this.background.lineTo(offsetX + 3 * this.gridSize, offsetY + 2 * this.gridSize)
-    this.background.stroke()
+    lineDrawer(
+      offsetX + 5 * this.gridSize,
+      offsetY,
+      offsetX + 3 * this.gridSize,
+      offsetY + 2 * this.gridSize,
+    )
 
-    // Bottom palace
-    this.background.beginPath()
-    this.background.moveTo(offsetX + 3 * this.gridSize, offsetY + 7 * this.gridSize)
-    this.background.lineTo(offsetX + 5 * this.gridSize, offsetY + 9 * this.gridSize)
-    this.background.stroke()
+    lineDrawer(
+      offsetX + 3 * this.gridSize,
+      offsetY + 7 * this.gridSize,
+      offsetX + 5 * this.gridSize,
+      offsetY + 9 * this.gridSize,
+    )
 
-    this.background.beginPath()
-    this.background.moveTo(offsetX + 5 * this.gridSize, offsetY + 7 * this.gridSize)
-    this.background.lineTo(offsetX + 3 * this.gridSize, offsetY + 9 * this.gridSize)
-    this.background.stroke()
+    lineDrawer(
+      offsetX + 5 * this.gridSize,
+      offsetY + 7 * this.gridSize,
+      offsetX + 3 * this.gridSize,
+      offsetY + 9 * this.gridSize,
+    )
 
-    this.background.beginPath()
-    this.background.moveTo(offsetX + 0 * this.gridSize, offsetY + 4 * this.gridSize)
-    this.background.lineTo(offsetX + 0 * this.gridSize, offsetY + 5 * this.gridSize)
-    this.background.stroke()
+    lineDrawer(
+      offsetX + 0 * this.gridSize,
+      offsetY + 4 * this.gridSize,
+      offsetX + 0 * this.gridSize,
+      offsetY + 5 * this.gridSize,
+    )
 
-    this.background.beginPath()
-    this.background.moveTo(offsetX + 8 * this.gridSize, offsetY + 4 * this.gridSize)
-    this.background.lineTo(offsetX + 8 * this.gridSize, offsetY + 5 * this.gridSize)
-    this.background.stroke()
+    lineDrawer(
+      offsetX + 8 * this.gridSize,
+      offsetY + 4 * this.gridSize,
+      offsetX + 8 * this.gridSize,
+      offsetY + 5 * this.gridSize,
+    )
 
     // Draw the position markers for soldiers/pawns
     this.drawPositionMarker(0, 3, offsetX, offsetY)
@@ -131,60 +148,77 @@ class ChessBoard {
     const targetX = offsetX + x * this.gridSize
     const targetY = offsetY + y * this.gridSize
 
+    const lineDrawer = Drawer.drawLine.bind(null, this.background)
+
     // Draw the position markers (small lines at corners)
     // Top-left
     if (x > 0) {
-      this.background.beginPath()
-      this.background.moveTo(targetX - markerSize, targetY - markerSize)
-      this.background.lineTo(targetX - markerSize * 2, targetY - markerSize)
-      this.background.stroke()
+      lineDrawer(
+        targetX - markerSize,
+        targetY - markerSize,
+        targetX - markerSize * 2,
+        targetY - markerSize,
+      )
 
-      this.background.beginPath()
-      this.background.moveTo(targetX - markerSize, targetY - markerSize)
-      this.background.lineTo(targetX - markerSize, targetY - markerSize * 2)
-      this.background.stroke()
+      lineDrawer(
+        targetX - markerSize,
+        targetY - markerSize,
+        targetX - markerSize,
+        targetY - markerSize * 2,
+      )
     }
 
     // Top-right
     if (x < 8) {
-      this.background.beginPath()
-      this.background.moveTo(targetX + markerSize, targetY - markerSize)
-      this.background.lineTo(targetX + markerSize * 2, targetY - markerSize)
-      this.background.stroke()
+      lineDrawer(
+        targetX + markerSize,
+        targetY - markerSize,
+        targetX + markerSize * 2,
+        targetY - markerSize,
+      )
 
-      this.background.beginPath()
-      this.background.moveTo(targetX + markerSize, targetY - markerSize)
-      this.background.lineTo(targetX + markerSize, targetY - markerSize * 2)
-      this.background.stroke()
+      lineDrawer(
+        targetX + markerSize,
+        targetY - markerSize,
+        targetX + markerSize,
+        targetY - markerSize * 2,
+      )
     }
 
     // Bottom-left
     if (x > 0) {
-      this.background.beginPath()
-      this.background.moveTo(targetX - markerSize, targetY + markerSize)
-      this.background.lineTo(targetX - markerSize * 2, targetY + markerSize)
-      this.background.stroke()
+      lineDrawer(
+        targetX - markerSize,
+        targetY + markerSize,
+        targetX - markerSize * 2,
+        targetY + markerSize,
+      )
 
-      this.background.beginPath()
-      this.background.moveTo(targetX - markerSize, targetY + markerSize)
-      this.background.lineTo(targetX - markerSize, targetY + markerSize * 2)
-      this.background.stroke()
+      lineDrawer(
+        targetX - markerSize,
+        targetY + markerSize,
+        targetX - markerSize,
+        targetY + markerSize * 2,
+      )
     }
 
     // Bottom-right
     if (x < 8) {
-      this.background.beginPath()
-      this.background.moveTo(targetX + markerSize, targetY + markerSize)
-      this.background.lineTo(targetX + markerSize * 2, targetY + markerSize)
-      this.background.stroke()
+      lineDrawer(
+        targetX + markerSize,
+        targetY + markerSize,
+        targetX + markerSize * 2,
+        targetY + markerSize,
+      )
 
-      this.background.beginPath()
-      this.background.moveTo(targetX + markerSize, targetY + markerSize)
-      this.background.lineTo(targetX + markerSize, targetY + markerSize * 2)
-      this.background.stroke()
+      lineDrawer(
+        targetX + markerSize,
+        targetY + markerSize,
+        targetX + markerSize,
+        targetY + markerSize * 2,
+      )
     }
   }
-
 }
 
 export default ChessBoard
