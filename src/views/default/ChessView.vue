@@ -8,8 +8,7 @@ const chesses = useTemplateRef('chesses')
 
 
 onMounted(() => {
-    const gridSize = 80
-    // const gridSize = 40
+    const gridSize = 60
     const canvasBackground = background.value as HTMLCanvasElement
     const canvasChesses = chesses.value as HTMLCanvasElement
     canvasBackground.width = gridSize * 9

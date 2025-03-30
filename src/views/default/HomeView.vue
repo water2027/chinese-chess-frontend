@@ -1,9 +1,9 @@
 <script lang="ts" setup>
 
 </script>
-
 <template>
-    <div>
-        <!-- 首页 -->
-    </div>
+    <h1>你好</h1>
+    <div></div>
 </template>
+<style scoped>
+</style>
