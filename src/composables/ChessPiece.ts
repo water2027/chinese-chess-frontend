@@ -26,8 +26,8 @@ class ChessPiece {
     this.color = color
     this.position = position
     this.isSelected = false
-    this.radius = gridSize / 2 // 棋子半径
     this.gridSize = gridSize
+    this.radius = gridSize / 2 // 棋子半径
     ChessPiece.chessEventBus.on('CHESS:SELECT', (req, _resp) => {
       const { id } = req
       if (id !== this.id) {
@@ -83,8 +83,8 @@ class ChessPiece {
   }
 
   public clearFromCanvas(ctx: CanvasRenderingContext2D) {
-    const x = this.position.x * this.gridSize
-    const y = this.position.y * this.gridSize
+    const x = this.position.x * this.gridSize + this.gridSize / 2
+    const y = this.position.y * this.gridSize + this.gridSize / 2
 
     const clearRadius = this.radius
     ctx.clearRect(x - clearRadius, y - clearRadius, clearRadius * 2, clearRadius * 2)
