@@ -5,7 +5,7 @@ export interface CustomFormData {
   id: string
   label: string
   value: string
-  type?: 'password' | 'email' | 'text' | 'number'
+  type?: 'password' | 'email' | 'text' | 'number' | 'username'
   reg?: RegExp
   autocomplete?: 'email' | 'username' | 'off' | 'new-password' | 'current-password'
 }

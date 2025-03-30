@@ -7,6 +7,13 @@ import { useFormExam } from '@/composables/FormExam'
 
 const loginForm = ref<CustomFormData[]>([
   {
+    id: 'username',
+    value: '',
+    label: '用户名',
+    type: 'username',
+    autocomplete: 'username'
+  },
+  {
     id: 'email',
     value: '',
     label: '邮箱',
