@@ -9,7 +9,7 @@ class ChessPiece {
   public id: number
   public name: string
   public color: ChessColor
-  public role: ChessRole = 'self' 
+  public role: ChessRole = 'enemy'
   public position: { x: number; y: number }
   private radius: number = 25 // 棋子半径
   private gridSize: number = 50 // 棋盘格子大小
@@ -110,8 +110,11 @@ class ChessPiece {
   }
 
   public isMoveValid(newPosition: { x: number; y: number }): boolean {
-    const { x, y } = this.position
+    const { x, y } = newPosition
     if (x < 0 || x > 8 || y < 0 || y > 9) {
+      return false
+    }
+    if (x === this.position.x && y === this.position.y) {
       return false
     }
     return true
@@ -121,7 +124,7 @@ class ChessPiece {
 class King extends ChessPiece {
   constructor(id: number, color: ChessColor, role: ChessRole, gridSize: number = 50) {
     const name = color === 'red' ? '帅' : '将'
-    const position = role === 'self' ? { x: 4, y: 0 } : { x: 4, y: 9 }
+    const position = role === 'enemy' ? { x: 4, y: 0 } : { x: 4, y: 9 }
     super(id, name, color, role, position, gridSize)
   }
 
@@ -130,13 +133,10 @@ class King extends ChessPiece {
       return false
     }
     const { x, y } = newPosition
-    if (x === this.position.x && y === this.position.y) {
-      return false
-    }
     if (x < 3 || x > 5) {
       return false
     }
-    const { upY, downY } = this.role === 'self' ? { upY: 0, downY: 2 } : { upY: 7, downY: 9 }
+    const { upY, downY } = this.role === 'enemy' ? { upY: 0, downY: 2 } : { upY: 7, downY: 9 }
     if (y < upY || y > downY) {
       return false
     }
@@ -151,7 +151,7 @@ class King extends ChessPiece {
 
 class Advisor extends ChessPiece {
   constructor(id: number, color: ChessColor, role: ChessRole, gridSize: number = 50) {
-    const name = role === 'self' ? '仕' : '士'
+    const name = role === 'enemy' ? '仕' : '士'
     const position = color === 'red' ? { x: 5, y: 0 } : { x: 5, y: 9 }
     super(id, name, color, role, position, gridSize)
   }
@@ -161,15 +161,12 @@ class Advisor extends ChessPiece {
       return false
     }
     const { x, y } = newPosition
-    if (x === this.position.x && y === this.position.y) {
-      return false
-    }
 
     if (x < 3 || x > 5) {
       return false
     }
 
-    const { upY, downY } = this.role === 'self' ? { upY: 0, downY: 2 } : { upY: 7, downY: 9 }
+    const { upY, downY } = this.role === 'enemy' ? { upY: 0, downY: 2 } : { upY: 7, downY: 9 }
     if (y < upY || y > downY) {
       return false
     }
@@ -185,7 +182,7 @@ class Advisor extends ChessPiece {
 class Bishop extends ChessPiece {
   constructor(id: number, color: ChessColor, role: ChessRole, gridSize: number = 50) {
     const name = color === 'red' ? '相' : '象'
-    const position = role === 'self' ? { x: 2, y: 0 } : { x: 2, y: 9 }
+    const position = role === 'enemy' ? { x: 2, y: 0 } : { x: 2, y: 9 }
     super(id, name, color, role, position, gridSize)
   }
 
@@ -194,15 +191,12 @@ class Bishop extends ChessPiece {
       return false
     }
     const { x, y } = newPosition
-    if (x === this.position.x && y === this.position.y) {
-      return false
-    }
 
     if (Math.abs(x - this.position.x) !== 2 || Math.abs(y - this.position.y) !== 2) {
       return false
     }
 
-    const { upY, downY } = this.role === 'self' ? { upY: 0, downY: 4 } : { upY: 5, downY: 9 }
+    const { upY, downY } = this.role === 'enemy' ? { upY: 0, downY: 4 } : { upY: 5, downY: 9 }
     if (y < upY || y > downY) {
       return false
     }
@@ -211,4 +205,48 @@ class Bishop extends ChessPiece {
   }
 }
 
-export { King, Advisor, Bishop }
+class Pawn extends ChessPiece {
+  constructor(id: number, color: ChessColor, role: ChessRole, x: number, gridSize: number = 50) {
+    const name = color === 'red' ? '兵' : '卒'
+    const y = role === 'enemy' ? 3 : 6
+    super(id, name, color, role, { x, y }, gridSize)
+  }
+
+  public isMoveValid(newPosition: { x: number; y: number }): boolean {
+    if (!super.isMoveValid(newPosition)) {
+      return false
+    }
+    const { x, y } = newPosition
+
+    const river = this.role === 'enemy' ? 4 : 5
+    if(this.role === 'enemy') {
+      if (y < river) {
+        if (x !== this.position.x || y - this.position.y !== 1) {
+          return false;
+        }
+        return true;
+      }
+
+      // 过河了
+      if (Math.abs(x - this.position.x) + Math.abs(y - this.position.y) !== 1) {
+        return false;
+      }
+      return true;
+    } else {
+      if (y > river) {
+        if (x !== this.position.x || this.position.y - y !== 1) {
+          return false;
+        }
+        return true;
+      }
+
+      // 过河了
+      if (Math.abs(x - this.position.x) + Math.abs(this.position.y - y) !== 1) {
+        return false;
+      }
+      return true;
+    }
+  }
+}
+
+export { King, Advisor, Bishop, Pawn }
