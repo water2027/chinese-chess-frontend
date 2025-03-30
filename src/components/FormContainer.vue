@@ -32,7 +32,7 @@ defineProps({
       :id="item.id"
       :label="item.label"
       v-model="item.value"
-      :type="item.type || ''"
+      :type="item.type || 'text'"
       :autocomplete="item.autocomplete || 'off'"
     />
     <slot></slot>

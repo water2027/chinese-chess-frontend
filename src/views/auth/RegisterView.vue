@@ -10,25 +10,27 @@ const registerForm = ref<CustomFormData[]>([
     id: 'username',
     value: '',
     label: '用户名',
-    type: 'username',
     autocomplete: 'username'
   },
   {
     id: 'email',
     value: '',
     label: '邮箱',
+    type: 'email',
     autocomplete: 'email',
   },
   {
     id: 'password',
     value: '',
     label: '密码',
+    type: 'password',
     autocomplete: 'new-password',
   },
   {
     id: 'password2',
     value: '',
     label: '确认密码',
+    type: 'password',
   },
   {
     id: 'v_code',
