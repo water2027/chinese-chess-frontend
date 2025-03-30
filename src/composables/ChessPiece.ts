@@ -4,13 +4,14 @@ import { EventEmitter } from '@/utils/eventEmitter'
 const ChessEvent = ['CHESS:SELECT'] as const
 type ChessColor = 'red' | 'black'
 type ChessRole = 'self' | 'enemy'
+type ChessPosition = { x: number; y: number }
 
 class ChessPiece {
   public id: number
   public name: string
   public color: ChessColor
   public role: ChessRole = 'enemy'
-  public position: { x: number; y: number }
+  public position: ChessPosition
   private radius: number = 25 // 棋子半径
   private gridSize: number = 50 // 棋盘格子大小
   public isSelected: boolean
@@ -22,7 +23,7 @@ class ChessPiece {
     name: string,
     color: ChessColor,
     role: ChessRole,
-    position: { x: number; y: number },
+    position: ChessPosition,
     gridSize: number = 60,
   ) {
     this.id = id
@@ -97,7 +98,7 @@ class ChessPiece {
 
   // 坐标由棋盘处理，这里接收的是处理好的坐标
   // 这里的坐标是棋盘坐标系，0-8,0-9
-  public move(newPosition: { x: number; y: number }, ctx: CanvasRenderingContext2D) {
+  public move(newPosition: ChessPosition, ctx: CanvasRenderingContext2D) {
     if (!this.isMoveValid(newPosition)) {
       return
     }
@@ -109,7 +110,7 @@ class ChessPiece {
     this.draw(ctx)
   }
 
-  public isMoveValid(newPosition: { x: number; y: number }): boolean {
+  public isMoveValid(newPosition: ChessPosition): boolean {
     const { x, y } = newPosition
     if (x < 0 || x > 8 || y < 0 || y > 9) {
       return false
@@ -123,12 +124,12 @@ class ChessPiece {
 
 class King extends ChessPiece {
   constructor(id: number, color: ChessColor, role: ChessRole, gridSize: number = 50) {
-    const name = color === 'red' ? '帅' : '将'
+    const name = color === 'red' ? '帥' : '將'
     const position = role === 'enemy' ? { x: 4, y: 0 } : { x: 4, y: 9 }
     super(id, name, color, role, position, gridSize)
   }
 
-  public isMoveValid(newPosition: { x: number; y: number }): boolean {
+  public isMoveValid(newPosition: ChessPosition): boolean {
     if (!super.isMoveValid(newPosition)) {
       return false
     }
@@ -156,7 +157,7 @@ class Advisor extends ChessPiece {
     super(id, name, color, role, position, gridSize)
   }
 
-  public isMoveValid(newPosition: { x: number; y: number }): boolean {
+  public isMoveValid(newPosition: ChessPosition): boolean {
     if (!super.isMoveValid(newPosition)) {
       return false
     }
@@ -186,7 +187,7 @@ class Bishop extends ChessPiece {
     super(id, name, color, role, position, gridSize)
   }
 
-  public isMoveValid(newPosition: { x: number; y: number }): boolean {
+  public isMoveValid(newPosition: ChessPosition): boolean {
     if (!super.isMoveValid(newPosition)) {
       return false
     }
@@ -212,41 +213,76 @@ class Pawn extends ChessPiece {
     super(id, name, color, role, { x, y }, gridSize)
   }
 
-  public isMoveValid(newPosition: { x: number; y: number }): boolean {
+  public isMoveValid(newPosition: ChessPosition): boolean {
     if (!super.isMoveValid(newPosition)) {
       return false
     }
     const { x, y } = newPosition
 
     const river = this.role === 'enemy' ? 4 : 5
-    if(this.role === 'enemy') {
+    if (this.role === 'enemy') {
       if (y < river) {
         if (x !== this.position.x || y - this.position.y !== 1) {
-          return false;
+          return false
         }
-        return true;
+        return true
       }
 
       // 过河了
       if (Math.abs(x - this.position.x) + Math.abs(y - this.position.y) !== 1) {
-        return false;
+        return false
       }
-      return true;
+      return true
     } else {
       if (y > river) {
         if (x !== this.position.x || this.position.y - y !== 1) {
-          return false;
+          return false
         }
-        return true;
+        return true
       }
 
       // 过河了
       if (Math.abs(x - this.position.x) + Math.abs(this.position.y - y) !== 1) {
-        return false;
+        return false
       }
-      return true;
+      return true
     }
   }
 }
 
-export { King, Advisor, Bishop, Pawn }
+class Rook extends ChessPiece {
+  constructor(id: number, color: ChessColor, role: ChessRole, gridSize: number = 50) {
+    const name = color === 'red' ? '俥' : '車'
+    const position = role === 'enemy' ? { x: 0, y: 0 } : { x: 0, y: 9 }
+    super(id, name, color, role, position, gridSize)
+  }
+
+  // public isMoveValid(newPosition: ChessPosition): boolean {
+  //   if (!super.isMoveValid(newPosition)) {
+  //     return false
+  //   }
+
+  //   return true
+  // }
+}
+
+// 馬
+class Horse extends ChessPiece {
+  constructor(id: number, color: ChessColor, role: ChessRole, x: number, gridSize: number = 50) {
+    const name = color === 'red' ? '傌' : '馬'
+    const y = role === 'enemy' ? 1 : 8
+    super(id, name, color, role, { x, y }, gridSize)
+  }
+
+  public isMoveValid(newPosition: ChessPosition): boolean {
+    if (!super.isMoveValid(newPosition)) {
+      return false
+    }
+
+
+
+    return true
+  }
+}
+
+export { King, Advisor, Bishop, Pawn, Rook }
