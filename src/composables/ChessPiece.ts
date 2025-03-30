@@ -1,3 +1,8 @@
+import { EventEmitter } from '@/utils/eventEmitter'
+
+// type ChessEvent = ['CHESS:SELECT']
+const ChessEvent = ['CHESS:SELECT'] as const
+
 class ChessPiece {
   public id: number
   public name: string
@@ -8,6 +13,7 @@ class ChessPiece {
   public isSelected: boolean
   // 浏览器环境
   private flashingInterval: number = 0
+  static chessEventBus = new EventEmitter(ChessEvent)
   constructor(
     id: number,
     name: string,
@@ -22,10 +28,18 @@ class ChessPiece {
     this.isSelected = false
     this.radius = gridSize / 2 // 棋子半径
     this.gridSize = gridSize
+    ChessPiece.chessEventBus.on('CHESS:SELECT', (req, _resp) => {
+      const { id } = req
+      if (id !== this.id) {
+        this.deselect()
+      }
+    })
   }
 
   public select() {
     this.isSelected = true
+    // 选中时发出事件，通知其他棋子取消选中状态
+    ChessPiece.chessEventBus.emit('CHESS:SELECT', { id: this.id }, null)
     // 闪烁效果
     this.flashingInterval = setInterval(() => {
       // 这里添加闪烁的逻辑
@@ -36,6 +50,7 @@ class ChessPiece {
     this.isSelected = false
     // 取消闪烁效果
     clearInterval(this.flashingInterval)
+    this.flashingInterval = 0
   }
 
   public draw(ctx: CanvasRenderingContext2D) {
