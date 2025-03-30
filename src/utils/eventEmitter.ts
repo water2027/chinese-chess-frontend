@@ -1,25 +1,36 @@
-const eventNames = ['API:UN_AUTH', 'API:NOT_FOUND', 'API:LOGOUT', 'TOKEN:GET'] as const
-type EventName = (typeof eventNames)[number]
+const ApiEvent = ['API:UN_AUTH', 'API:NOT_FOUND', 'API:LOGOUT', 'TOKEN:GET'] as const
+
 type Listener = (req: any, resp: any) => void
 
-class EventEmitter {
-  listeners: Record<EventName, Set<Listener>> = {} as Record<EventName, Set<Listener>>
+class EventEmitter<T extends readonly string[]> {
+  private eventNames: T;
+  listeners: Record<T[number], Set<Listener>> = {} as Record<T[number], Set<Listener>>
+  constructor(EventNames: T) {
+    this.eventNames = EventNames
+    this.eventNames.forEach((eventName) => {
+      this.listeners[eventName as T[number]] = new Set<Listener>()
+    })
+  }
 
-  on(eventName: EventName, listener: Listener) {
+  on(eventName: T[number], listener: Listener) {
     if (!this.listeners[eventName]) {
       this.listeners[eventName] = new Set<Listener>()
     }
     this.listeners[eventName].add(listener)
   }
 
-  off(eventName: EventName, listener: Listener) {
+  off(eventName: T[number], listener: Listener) {
     if (!this.listeners[eventName]) return
     this.listeners[eventName].delete(listener)
   }
 
-  emit(eventName: EventName, req: any = {}, resp: any = {}) {
+  emit(eventName: T[number], req: any = {}, resp: any = {}) {
     this.listeners[eventName].forEach((listener) => listener(req, resp))
   }
 }
 
-export default new EventEmitter()
+const ApiBus = new EventEmitter(ApiEvent)
+export {
+  ApiBus,
+  EventEmitter,
+}

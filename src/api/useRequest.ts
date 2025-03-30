@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-import eventEmitter from '@/utils/eventEmitter'
+import { ApiBus } from '@/utils/eventEmitter'
 
 interface Response {
   code: number
@@ -18,10 +18,10 @@ axios.interceptors.request.use((config) => {
   }
   // 获取token操作
   const resp: Record<'token', string> = { token: '' }
-  eventEmitter.emit('TOKEN:GET', undefined, resp)
+  ApiBus.emit('TOKEN:GET', undefined, resp)
   const { token } = resp
   if (!token) {
-    eventEmitter.emit('API:UN_AUTH')
+    ApiBus.emit('API:UN_AUTH')
     return config
   }
   config.headers.Authorization = `Bearer ${token}`
@@ -31,13 +31,13 @@ axios.interceptors.request.use((config) => {
 const errorCodeHandler: Record<number, ErrorHandler> = {
   // - token无效或没有token 1 (前端需要重新登录)
   1: () => {
-    eventEmitter.emit('API:UN_AUTH')
+    ApiBus.emit('API:UN_AUTH')
   },
 }
 
 const httpCodeHandler: Record<number, ErrorHandler> = {
   404: () => {
-    eventEmitter.emit('API:NOT_FOUND')
+    ApiBus.emit('API:NOT_FOUND')
   },
   500: () => {},
 }
