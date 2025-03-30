@@ -94,7 +94,7 @@ class ChessPiece {
   // 坐标由棋盘处理，这里接收的是处理好的坐标
   // 这里的坐标是棋盘坐标系，0-8,0-9
   public move(newPosition: { x: number; y: number }, ctx: CanvasRenderingContext2D) {
-    if(!this.isMoveValid(newPosition)) {
+    if (!this.isMoveValid(newPosition)) {
       return
     }
     // 清除原来位置
@@ -107,7 +107,7 @@ class ChessPiece {
 
   public isMoveValid(newPosition: { x: number; y: number }): boolean {
     const { x, y } = this.position
-    if(x < 0 || x > 8 || y < 0 || y > 9) {
+    if (x < 0 || x > 8 || y < 0 || y > 9) {
       return false
     }
     return true
@@ -122,27 +122,60 @@ class King extends ChessPiece {
   }
 
   public isMoveValid(newPosition: { x: number; y: number }): boolean {
-    if(!super.isMoveValid(newPosition)) {
-      return false;
-    }
-    const { x, y } = newPosition
-    if(x === this.position.x && y === this.position.y) {
+    if (!super.isMoveValid(newPosition)) {
       return false
     }
-    if(x < 3 || x > 5 ) {
+    const { x, y } = newPosition
+    if (x === this.position.x && y === this.position.y) {
+      return false
+    }
+    if (x < 3 || x > 5) {
       return false
     }
     const { upY, downY } = this.color === 'red' ? { upY: 0, downY: 2 } : { upY: 7, downY: 9 }
-    if(y < upY || y > downY) {
+    if (y < upY || y > downY) {
       return false
     }
 
-    if(Math.pow(x - this.position.x, 2) + Math.pow(y - this.position.y, 2) > 2) {
+    if (Math.pow(x - this.position.x, 2) + Math.pow(y - this.position.y, 2) > 2) {
       return false
     }
 
-    return true;
+    return true
   }
 }
 
-export { King }
+class Advisor extends ChessPiece {
+  constructor(id: number, color: ChessColor, gridSize: number = 50) {
+    const name = color === 'red' ? '仕' : '士'
+    const position = color === 'red' ? { x: 5, y: 0 } : { x: 5, y: 9 }
+    super(id, name, color, position, gridSize)
+  }
+
+  public isMoveValid(newPosition: { x: number; y: number }): boolean {
+    if (!super.isMoveValid(newPosition)) {
+      return false
+    }
+    const { x, y } = newPosition
+    if (x === this.position.x && y === this.position.y) {
+      return false
+    }
+
+    if (x < 3 || x > 5) {
+      return false
+    }
+
+    const { upY, downY } = this.color === 'red' ? { upY: 0, downY: 2 } : { upY: 7, downY: 9 }
+    if (y < upY || y > downY) {
+      return false
+    }
+
+    if (Math.abs(x - this.position.x) + Math.abs(y - this.position.y) !== 2) {
+      return false
+    }
+
+    return true
+  }
+}
+
+export { King, Advisor }
