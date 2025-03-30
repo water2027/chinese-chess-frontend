@@ -2,11 +2,12 @@ import { EventEmitter } from '@/utils/eventEmitter'
 
 // type ChessEvent = ['CHESS:SELECT']
 const ChessEvent = ['CHESS:SELECT'] as const
+type ChessColor = 'red' | 'black'
 
 class ChessPiece {
   public id: number
   public name: string
-  public color: string
+  public color: ChessColor
   public position: { x: number; y: number }
   private radius: number = 25 // 棋子半径
   private gridSize: number = 50 // 棋盘格子大小
@@ -17,7 +18,7 @@ class ChessPiece {
   constructor(
     id: number,
     name: string,
-    color: string,
+    color: ChessColor,
     position: { x: number; y: number },
     gridSize: number = 60,
   ) {
@@ -90,7 +91,12 @@ class ChessPiece {
     ctx.clearRect(x - clearRadius, y - clearRadius, clearRadius * 2, clearRadius * 2)
   }
 
+  // 坐标由棋盘处理，这里接收的是处理好的坐标
+  // 这里的坐标是棋盘坐标系，0-8,0-9
   public move(newPosition: { x: number; y: number }, ctx: CanvasRenderingContext2D) {
+    if(!this.isMoveValid(newPosition)) {
+      return
+    }
     // 清除原来位置
     this.clearFromCanvas(ctx)
     // 更新位置
@@ -98,6 +104,45 @@ class ChessPiece {
     // 绘制新位置
     this.draw(ctx)
   }
+
+  public isMoveValid(newPosition: { x: number; y: number }): boolean {
+    const { x, y } = this.position
+    if(x < 0 || x > 8 || y < 0 || y > 9) {
+      return false
+    }
+    return true
+  }
 }
 
-export default ChessPiece
+class King extends ChessPiece {
+  constructor(id: number, color: ChessColor, gridSize: number = 50) {
+    const name = color === 'red' ? '帅' : '将'
+    const position = color === 'red' ? { x: 4, y: 0 } : { x: 4, y: 9 }
+    super(id, name, color, position, gridSize)
+  }
+
+  public isMoveValid(newPosition: { x: number; y: number }): boolean {
+    if(!super.isMoveValid(newPosition)) {
+      return false;
+    }
+    const { x, y } = newPosition
+    if(x === this.position.x && y === this.position.y) {
+      return false
+    }
+    if(x < 3 || x > 5 ) {
+      return false
+    }
+    const { upY, downY } = this.color === 'red' ? { upY: 0, downY: 2 } : { upY: 7, downY: 9 }
+    if(y < upY || y > downY) {
+      return false
+    }
+
+    if(Math.pow(x - this.position.x, 2) + Math.pow(y - this.position.y, 2) > 2) {
+      return false
+    }
+
+    return true;
+  }
+}
+
+export { King }
