@@ -7,9 +7,29 @@ const router = createRouter({
   routes: [
     {
       path: '/',
-      name: 'home',
       component: () => import('../layout/DefaultLayout.vue'),
-      children: [],
+      children: [
+        {
+          path: '',
+          name: 'home',
+          component: () => import('../views/default/HomeView.vue'),
+        },
+        {
+          path: 'about',
+          name: 'about',
+          component: () => import('../views/default/AboutView.vue'),
+        },
+        {
+          path: 'chess',
+          name: 'chess',
+          component: () => import('../views/default/ChessView.vue'),
+        },
+        {
+          path: 'room',
+          name: 'room',
+          component: () => import('../views/default/RoomView.vue'),
+        },
+      ],
     },
     {
       path: '/auth/',

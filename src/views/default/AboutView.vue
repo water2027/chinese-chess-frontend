@@ -4,6 +4,6 @@
 
 <template>
     <div>
-        hello
+        <!-- 首页 -->
     </div>
 </template>
