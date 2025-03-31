@@ -42,8 +42,6 @@ class ChessPiece {
 
   public select() {
     this.isSelected = true
-    // 选中时发出事件，通知其他棋子取消选中状态
-    ChessPiece.chessEventBus.emit('CHESS:SELECT', this, null)
     // 闪烁效果
     let count = 0
     this.flashingInterval = setInterval(() => {
@@ -96,25 +94,15 @@ class ChessPiece {
   // 坐标由棋盘处理，这里接收的是处理好的坐标
   // 这里的坐标是棋盘坐标系，0-8,0-9
   public move(newPosition: ChessPosition) {
-    ChessPiece.chessEventBus.emit(
-      'CHESS:MOVE',
-      {
-        lastPosition: this.position, // 上一个位置
-        newPosition: newPosition, // 新位置
-        piece: this, // 棋子对象
-      },
-      () => {
-        if (!this.isMoveValid(newPosition)) {
-          return
-        }
-        // 清除原来位置
-        this.clearFromCanvas()
-        // 更新位置
-        this.position = newPosition
-        // 绘制新位置
-        this.draw()
-      },
-    )
+    if (!this.isMoveValid(newPosition)) {
+      return
+    }
+    // 清除原来位置
+    this.clearFromCanvas()
+    // 更新位置
+    this.position = newPosition
+    // 绘制新位置
+    this.draw()
   }
 
   public isMoveValid(newPosition: ChessPosition): boolean {
@@ -451,6 +439,7 @@ class ChessFactory {
   ): ChessPiece {
     switch (name) {
       case 'King':
+        console.log(id)
         return new King(ctx, id, color, role, gridSize)
       case 'Advisor':
         return new Advisor(ctx, id, color, role, x, gridSize)

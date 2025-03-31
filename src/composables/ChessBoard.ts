@@ -2,6 +2,8 @@ import { ChessPiece, ChessFactory } from './ChessPiece'
 import type { ChessColor, Board, ChessRole } from './ChessPiece'
 import Drawer from './drawer'
 
+const KingIds = [15, 31]
+
 class ChessBoard {
   private board: Board
   private gridSize: number
@@ -62,33 +64,50 @@ class ChessBoard {
       const piece = this.board[x][y]
       if (this.selectedPiece) {
         if (!piece || piece.color !== this.selectedPiece.color) {
-          this.selectedPiece.move({ x, y })
+          ChessPiece.chessEventBus.emit('CHESS:MOVE', {
+            lastPosition: this.selectedPiece.position,
+            newPosition: { x, y },
+          })
           this.selectedPiece.deselect()
           this.selectedPiece = null
           return
         }
-        piece.select()
+        ChessPiece.chessEventBus.emit('CHESS:SELECT', piece, null)
         return
       }
 
       if (piece) {
-        piece.select()
+        ChessPiece.chessEventBus.emit('CHESS:SELECT', piece, null)
       }
     })
   }
 
   private listenEvent() {
     ChessPiece.chessEventBus.on('CHESS:SELECT', (piece, _resp) => {
-      this.selectedPiece?.deselect()
-      this.selectedPiece = piece
-    })
-
-    ChessPiece.chessEventBus.on('CHESS:MOVE', (req, resp) => {
-      const { lastPosition, newPosition, piece } = req
       if (piece.role !== this.currentRole) {
         return
       }
-      resp()
+      this.selectedPiece?.deselect()
+      this.selectedPiece = piece
+      piece.select()
+    })
+
+    ChessPiece.chessEventBus.on('CHESS:MOVE', (req, _resp) => {
+      const { lastPosition, newPosition } = req
+      const piece = this.board[lastPosition.x][lastPosition.y]
+      const targetPiece = this.board[newPosition.x][newPosition.y]
+      if (!piece) {
+        return
+      }
+      if (piece.role !== this.currentRole) {
+        return
+      }
+      piece.move(newPosition)
+      if (targetPiece) {
+        if (KingIds.includes(targetPiece.id)) {
+          setTimeout(() => alert(`${this.currentRole} win!`))
+        }
+      }
       delete this.board[lastPosition.x][lastPosition.y]
       this.board[newPosition.x][newPosition.y] = piece
 
@@ -102,8 +121,6 @@ class ChessBoard {
         const { x, y } = p
         const piece = this.board[x][y]
         if (piece) {
-          console.log(x, y)
-          console.log(piece)
           nums++
         }
       }
