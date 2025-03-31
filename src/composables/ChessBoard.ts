@@ -39,7 +39,7 @@ class ChessBoard {
     this.board = new Array(9).fill(null).map(() => {
       return {}
     })
-    console.log(this.board)
+
     this.initBoard()
 
     ChessPiece.chessEventBus.on('CHESS:SELECT', (piece, _resp) => {

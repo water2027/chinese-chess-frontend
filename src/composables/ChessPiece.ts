@@ -214,9 +214,15 @@ class Pawn extends ChessPiece {
     const { x, y } = newPosition
 
     const river = this.role === 'enemy' ? 4 : 5
+    console.log(this.role, river, y, this.position.y)
     if (this.role === 'enemy') {
-      if (y < river) {
-        if (x !== this.position.x || y - this.position.y !== 1) {
+      if (y - this.position.y < 0) {
+        console.log(false)
+
+        return false
+      }
+      if (this.position.y <= river) {
+        if (x !== this.position.x) {
           return false
         }
         return true
@@ -228,8 +234,11 @@ class Pawn extends ChessPiece {
       }
       return true
     } else {
-      if (y > river) {
-        if (x !== this.position.x || this.position.y - y !== 1) {
+      if(this.position.y - y < 0) {
+        return false;
+      }
+      if (this.position.y >= river) {
+        if (x !== this.position.x) {
           return false
         }
         return true
