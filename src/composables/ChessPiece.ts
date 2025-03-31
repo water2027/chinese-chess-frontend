@@ -319,18 +319,18 @@ class Rook extends ChessPiece {
       return false
     }
 
-    const arr:ChessPosition[] = []
+    const arr: ChessPosition[] = []
     const { x, y } = newPosition
     if (x !== this.position.x && y !== this.position.y) {
       return false
     }
     // 检查路径上是否有棋子
-    if(x === this.position.x) {
-      for(let i = Math.min(this.position.y, y) + 1; i < Math.max(this.position.y, y); i++) {
+    if (x === this.position.x) {
+      for (let i = Math.min(this.position.y, y) + 1; i < Math.max(this.position.y, y); i++) {
         arr.push({ x: this.position.x, y: i })
       }
     } else {
-      for(let i = Math.min(this.position.x, x) + 1; i < Math.max(this.position.x, x); i++) {
+      for (let i = Math.min(this.position.x, x) + 1; i < Math.max(this.position.x, x); i++) {
         arr.push({ x: i, y: this.position.y })
       }
     }
@@ -361,6 +361,30 @@ class Horse extends ChessPiece {
 
   public isMoveValid(newPosition: ChessPosition): boolean {
     if (!super.isMoveValid(newPosition)) {
+      return false
+    }
+
+    const { x, y } = newPosition
+    const dx = Math.abs(x - this.position.x)
+    const dy = Math.abs(y - this.position.y)
+    if (dx + dy !== 3 || dx === 0 || dy === 0) {
+      return false
+    }
+
+    // 检查是否有障碍物
+    const direction = dx > dy
+    let checkPosition
+    if (direction) {
+      const directionX = x - this.position.x > 0 ? 1 : -1
+      checkPosition = { x: this.position.x + directionX, y: this.position.y }
+    } else {
+      const directionY = y - this.position.y > 0 ? 1 : -1
+      checkPosition = { x: this.position.x, y: this.position.y + directionY }
+    }
+    const resp = {}
+    ChessPiece.chessEventBus.emit('CHESS:CHECK', { arr: [checkPosition] }, resp)
+    const { nums } = resp as any
+    if (nums > 0) {
       return false
     }
 
