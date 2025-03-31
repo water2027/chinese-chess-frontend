@@ -412,6 +412,32 @@ class Cannon extends ChessPiece {
       return false
     }
 
+    const arr: ChessPosition[] = []
+    const { x, y } = newPosition
+
+    if (x !== this.position.x && y !== this.position.y) {
+      return false
+    }
+
+    // 检查路径上是否有棋子
+    if (x === this.position.x) {
+      for (let i = Math.min(this.position.y, y) + 1; i < Math.max(this.position.y, y); i++) {
+        arr.push({ x: this.position.x, y: i })
+      }
+    } else {
+      for (let i = Math.min(this.position.x, x) + 1; i < Math.max(this.position.x, x); i++) {
+        arr.push({ x: i, y: this.position.y })
+      }
+    }
+    arr.push(newPosition)
+    const resp = {}
+    ChessPiece.chessEventBus.emit('CHESS:CHECK', { arr }, resp)
+    const { nums } = resp as any
+    console.log(nums)
+    if (nums !== 2 && nums !== 0) {
+      return false
+    }
+
     return true
   }
 }
