@@ -1,26 +1,14 @@
 <script lang="ts" setup>
 import { inject, onMounted, useTemplateRef } from 'vue'
 
-import type { WebSocketService, EventHandler } from '@/websocket'
+import { type WebSocketService, MessageType } from '@/websocket'
 import ChessBoard from '@/composables/ChessBoard'
 import { ChessPiece } from '@/composables/ChessPiece'
-import { ApiBus } from '@/utils/eventEmitter'
-import { useUserStore } from '@/store/useStore'
-
-const { token } = useUserStore()
 
 const background = useTemplateRef('background')
 const chesses = useTemplateRef('chesses')
 
 const ws = inject<WebSocketService>('ws')
-
-const eventHandler: EventHandler = (message) => {
-  const data = JSON.parse(message.data)
-  if (data.type === 'CHESS:MOVE:END') {
-    const { from, to } = data.payload
-    ChessPiece.chessEventBus.emit('CHESS:MOVE:END', from, to)
-  }
-}
 
 onMounted(() => {
   const gridSize = 60
@@ -34,9 +22,7 @@ onMounted(() => {
   }
 
   const chessBoard = new ChessBoard(canvasBackground, canvasChesses, 'red', gridSize)
-  ChessPiece.chessEventBus.on('CHESS:MOVE:END', (req, resp) => {})
-  ws?.connect(`ws://localhost:8080/ws?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NDQwMzUzNjUsImlhdCI6MTc0MzQzMDU2NSwidXNlcklkIjoxfQ.zPihmY66MwM-VOdR1uaUPa3CDx3loOTyM6dtooqLiOM`, console.log)
-  ws?.sendMessage({type: 0})
+
 })
 </script>
 

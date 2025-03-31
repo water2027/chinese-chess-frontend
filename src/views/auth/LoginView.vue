@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ref } from 'vue'
+import { ref, useTemplateRef } from 'vue'
 
 import FormContainer from '@/components/FormContainer.vue'
 import type { CustomFormData } from '@/composables/FormExam'
@@ -7,6 +7,8 @@ import { useFormExam } from '@/composables/FormExam'
 
 import { login } from '@/api/user/login'
 import { ApiBus } from '@/utils/eventEmitter'
+
+const rememberMe = useTemplateRef('rememberMe')
 
 const loginForm = ref<CustomFormData[]>([
   {
@@ -34,6 +36,11 @@ const loginAction = async () => {
   const resp = await login({ email, password })
 
   ApiBus.emit('API:LOGIN', () => resp)
+
+  if(rememberMe.value?.checked) {
+    localStorage.setItem('email', email)
+    localStorage.setItem('password', password)
+  }
 }
 </script>
 
@@ -43,5 +50,10 @@ const loginAction = async () => {
     @submit-form="loginAction"
     :form-data="loginForm"
     :disabled="!correct"
-  />
+  >
+    <input type="checkbox" ref="rememberMe">
+      <label for="rememberMe">记住我</label>
+      <span class="text-sm text-gray-500">下次自动登录</span>
+    </input>
+  </FormContainer>
 </template>

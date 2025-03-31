@@ -64,8 +64,8 @@ class ChessBoard {
         if (!piece || piece.color !== this.selectedPiece.color) {
           const curPiece = this.selectedPiece
           ChessPiece.chessEventBus.emit('CHESS:MOVE:START', () => ({
-            lastPosition: curPiece.position,
-            newPosition: { x, y },
+            from: curPiece.position,
+            to: { x, y },
           }))
           this.selectedPiece.deselect()
           this.selectedPiece = null
@@ -84,24 +84,34 @@ class ChessBoard {
   private listenEvent() {
     ChessPiece.chessEventBus.on('CHESS:SELECT', (req) => {
       const piece = req()
-      if (!piece || piece.role !== this.currentRole) {
+      // 联网
+      if (!piece || piece.color !== this.color) {
         return
       }
+      // 本地
+      // if (!piece || piece.role !== this.currentRole) {
+      //   return
+      // }
       this.selectedPiece?.deselect()
       this.selectedPiece = piece
       piece.select()
     })
 
     ChessPiece.chessEventBus.on('CHESS:MOVE:START', (req, _resp) => {
-      const { lastPosition, newPosition } = req()
+      const { from:lastPosition, to:newPosition } = req()
       const piece = this.board[lastPosition.x][lastPosition.y]
       const targetPiece = this.board[newPosition.x][newPosition.y]
       if (!piece) {
         return
       }
-      if (piece.role !== this.currentRole) {
+      // 联网
+      if (piece.color !== this.color) {
         return
       }
+      // 本地
+      // if (piece.role !== this.currentRole) {
+      //   return
+      // }
       if (!piece.move(newPosition)) {
         return
       }
@@ -116,10 +126,14 @@ class ChessBoard {
 
       this.currentRole = this.currentRole === 'self' ? 'enemy' : 'self'
 
-      ChessPiece.chessEventBus.emit('CHESS:MOVE:END', () => ({
-        lastPosition,
-        newPosition,
-      }))
+      // 现在是自己走，说明刚刚是对方刚走完
+      if(this.currentRole !== 'self') {
+        // 为避免对方走又发送一次走子事件
+        ChessPiece.chessEventBus.emit('CHESS:MOVE:END', () => ({
+          from:lastPosition,
+          to:newPosition,
+        }))
+      }
     })
 
     ChessPiece.chessEventBus.on('CHESS:CHECK', (req, resp) => {
