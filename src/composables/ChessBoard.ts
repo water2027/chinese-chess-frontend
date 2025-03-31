@@ -57,6 +57,7 @@ class ChessBoard {
       const rect = this.chessesElement.getBoundingClientRect()
       const x = Math.floor((event.clientX - rect.left) / this.gridSize)
       const y = Math.floor((event.clientY - rect.top) / this.gridSize)
+      console.log('click', x, y)
 
       // 棋子点击事件
       const piece = this.board[x][y]
@@ -67,12 +68,12 @@ class ChessBoard {
           this.selectedPiece = null
           return
         }
-        ChessPiece.chessEventBus.emit('CHESS:SELECT', piece, null)
+        piece.select()
         return
       }
 
       if (piece) {
-        ChessPiece.chessEventBus.emit('CHESS:SELECT', piece, null)
+        piece.select()
       }
     })
   }

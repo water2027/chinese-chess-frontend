@@ -76,13 +76,6 @@ class ChessPiece {
     ctx.lineWidth = 1
     ctx.stroke()
 
-    // 绘制外圆（边框）
-    ctx.beginPath()
-    ctx.arc(x, y, this.radius, 0, Math.PI * 2)
-    ctx.strokeStyle = '#000'
-    ctx.lineWidth = 2
-    ctx.stroke()
-
     ctx.fillStyle = this.color === 'red' ? '#ffffff' : '#ffffff'
     ctx.font = 'bold 20px SimHei, Arial'
     ctx.textAlign = 'center'
