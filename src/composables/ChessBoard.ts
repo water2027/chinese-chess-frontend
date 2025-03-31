@@ -46,6 +46,12 @@ class ChessBoard {
       this.selectedPiece?.deselect()
       this.selectedPiece = piece
     })
+
+    ChessPiece.chessEventBus.on('CHESS:MOVE', (req, resp) => {
+      const { lastPosition, newPosition, piece } = req
+      delete this.board[lastPosition.x][lastPosition.y]
+      this.board[newPosition.x][newPosition.y] = piece    
+    })
   }
 
   public initBoard() {

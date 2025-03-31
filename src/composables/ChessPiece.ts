@@ -5,7 +5,7 @@ import { EventEmitter } from '@/utils/eventEmitter'
 type ChessNames = ['Rook', 'Horse', 'Bishop', 'Advisor', 'Cannon', 'Pawn', 'King']
 export type ChessColor = 'red' | 'black'
 export type ChessRole = 'self' | 'enemy'
-const ChessEvent = ['CHESS:SELECT'] as const
+const ChessEvent = ['CHESS:SELECT', 'CHESS:MOVE'] as const
 type ChessPosition = { x: number; y: number }
 
 class ChessPiece {
@@ -36,12 +36,6 @@ class ChessPiece {
     this.isSelected = false
     this.gridSize = gridSize
     this.radius = gridSize / 2 // 棋子半径
-    // ChessPiece.chessEventBus.on('CHESS:SELECT', (req, _resp) => {
-    //   const { id } = req
-    //   if (id !== this.id) {
-    //     this.deselect()
-    //   }
-    // })
   }
 
   public select() {
@@ -97,6 +91,11 @@ class ChessPiece {
     if (!this.isMoveValid(newPosition)) {
       return
     }
+    ChessPiece.chessEventBus.emit('CHESS:MOVE', {
+      lastPosition: this.position,  // 上一个位置
+      newPosition: newPosition, // 新位置
+      piece: this, // 棋子对象
+    }, null)
     // 清除原来位置
     this.clearFromCanvas(ctx)
     // 更新位置
