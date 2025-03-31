@@ -468,6 +468,7 @@ class ChessFactory {
       case 'Cannon':
         return new Cannon(ctx, id, color, role, x, gridSize)
       default:
+        console.log(name)
         throw new Error('Invalid chess piece name')
     }
   }
