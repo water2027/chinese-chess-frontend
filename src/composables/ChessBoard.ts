@@ -1,8 +1,6 @@
-import { ChessPiece, ChessFactory } from './ChessPiece'
+import { ChessPiece, ChessFactory, King } from './ChessPiece'
 import type { ChessColor, Board, ChessRole } from './ChessPiece'
 import Drawer from './drawer'
-
-const KingIds = [15, 31]
 
 class ChessBoard {
   private board: Board
@@ -104,8 +102,9 @@ class ChessBoard {
       }
       piece.move(newPosition)
       if (targetPiece) {
-        if (KingIds.includes(targetPiece.id)) {
-          setTimeout(() => alert(`${this.currentRole} win!`))
+        if (targetPiece instanceof King) {
+          const winner = this.currentRole
+          setTimeout(() => alert(`${winner} win!`))
         }
       }
       delete this.board[lastPosition.x][lastPosition.y]
@@ -125,6 +124,14 @@ class ChessBoard {
         }
       }
       resp.nums = nums
+    })
+
+    ChessPiece.chessEventBus.on('CHESS:QUERY', (req, resp) => {
+      const { x, y } = req
+      const piece = this.board[x][y]
+      if (piece) {
+        resp.piece = piece
+      }
     })
   }
 

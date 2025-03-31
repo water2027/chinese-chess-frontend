@@ -5,7 +5,7 @@ type ChessNames = ['Rook', 'Horse', 'Bishop', 'Advisor', 'Cannon', 'Pawn', 'King
 export type ChessColor = 'red' | 'black'
 export type ChessRole = 'self' | 'enemy'
 export type Board = Array<{ [key: string]: ChessPiece }>
-const ChessEvent = ['CHESS:SELECT', 'CHESS:MOVE', 'CHESS:CHECK'] as const
+const ChessEvent = ['CHESS:SELECT', 'CHESS:MOVE', 'CHESS:CHECK', 'CHESS:QUERY'] as const
 type ChessPosition = { x: number; y: number }
 
 class ChessPiece {
@@ -138,6 +138,22 @@ class King extends ChessPiece {
     if (x < 3 || x > 5) {
       return false
     }
+
+    const arr: ChessPosition[] = []
+    for(let i = Math.min(this.position.y, y) + 1; i < Math.max(this.position.y, y); i++) {
+      arr.push({ x: this.position.x, y: i })
+    }
+    const resp = {}
+    ChessPiece.chessEventBus.emit('CHESS:CHECK', { arr }, resp)
+    const { nums } = resp as any
+    if(nums === 0) {
+      ChessPiece.chessEventBus.emit('CHESS:QUERY', newPosition, resp)
+      const { piece } = resp as any
+      if (piece && piece instanceof King) {
+        return true
+      }
+    }
+
     const { upY, downY } = this.role === 'enemy' ? { upY: 0, downY: 2 } : { upY: 7, downY: 9 }
     if (y < upY || y > downY) {
       return false
@@ -439,7 +455,6 @@ class ChessFactory {
   ): ChessPiece {
     switch (name) {
       case 'King':
-        console.log(id)
         return new King(ctx, id, color, role, gridSize)
       case 'Advisor':
         return new Advisor(ctx, id, color, role, x, gridSize)
@@ -460,4 +475,4 @@ class ChessFactory {
   }
 }
 
-export { ChessFactory, ChessPiece }
+export { ChessFactory, ChessPiece, King }
