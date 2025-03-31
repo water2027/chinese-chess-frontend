@@ -11,10 +11,6 @@ onMounted(() => {
     const gridSize = 60
     const canvasBackground = background.value as HTMLCanvasElement
     const canvasChesses = chesses.value as HTMLCanvasElement
-    canvasBackground.width = gridSize * 9
-    canvasBackground.height = gridSize * 10
-    canvasChesses.width = gridSize * 9
-    canvasChesses.height = gridSize * 10
     const ctxBackground = canvasBackground.getContext('2d')
     const ctxChesses = canvasChesses.getContext('2d')
 
@@ -22,7 +18,7 @@ onMounted(() => {
         throw new Error('Failed to get canvas context')
     }
 
-    const chessBoard = new ChessBoard(ctxBackground, ctxChesses, gridSize)
+    const chessBoard = new ChessBoard(canvasBackground, canvasChesses, 'red', gridSize)
 })
 </script>
 

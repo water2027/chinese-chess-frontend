@@ -1,34 +1,187 @@
-import ChessPiece from './ChessPiece'
+import { ChessPiece, ChessFactory } from './ChessPiece'
+import type { ChessRole, ChessColor } from './ChessPiece'
 import Drawer from './drawer'
 
+type Board = Array<{ [key: string]: ChessPiece }>
+
 class ChessBoard {
-  private board: number[][]
+  private board: Board
   private gridSize: number
   // 棋盘
+  private boardElement: HTMLCanvasElement
   private background: CanvasRenderingContext2D
   // 棋子
+  private chessesElement: HTMLCanvasElement
   private chesses: CanvasRenderingContext2D
-  private pieces: ChessPiece[]
   private width: number
   private height: number
+  private selectedPiece: ChessPiece | null = null
+  private color: ChessColor
 
   constructor(
-    background: CanvasRenderingContext2D,
-    chesses: CanvasRenderingContext2D,
+    boardElement: HTMLCanvasElement,
+    chessesElement: HTMLCanvasElement,
+    color: ChessColor,
     gridSize: number = 50,
   ) {
-    this.background = background
-    this.chesses = chesses
+    this.boardElement = boardElement
+    this.chessesElement = chessesElement
     this.width = gridSize * 9
     this.height = gridSize * 10
+    this.boardElement.width = this.width
+    this.boardElement.height = this.height
+    this.chessesElement.width = this.width
+    this.chessesElement.height = this.height
+    this.background = this.boardElement.getContext('2d') as CanvasRenderingContext2D
+    this.chesses = this.chessesElement.getContext('2d') as CanvasRenderingContext2D
+    this.color = color
     this.gridSize = gridSize
-    this.board = Array.from({ length: 10 }, () => Array(9).fill(0)) // 初始化棋盘
-    this.pieces = [] // 棋子数组
+    this.board = new Array(9).fill(null).map(() => {
+      return {}
+    })
+    console.log(this.board)
     this.initBoard()
+
+    ChessPiece.chessEventBus.on('CHESS:SELECT', (piece, _resp) => {
+      this.selectedPiece?.deselect()
+      this.selectedPiece = piece
+    })
   }
 
   public initBoard() {
     this.drawBoard()
+    this.initChesses()
+    this.drawChesses()
+
+    this.chessesElement.addEventListener('click', (event) => {
+      const rect = this.chessesElement.getBoundingClientRect()
+      const x = Math.floor((event.clientX - rect.left) / this.gridSize)
+      const y = Math.floor((event.clientY - rect.top) / this.gridSize)
+
+      // 棋子点击事件
+      const piece = this.board[x][y]
+      if (this.selectedPiece) {
+        if (!piece || piece.color !== this.selectedPiece.color) {
+          this.selectedPiece.move({ x, y }, this.chesses)
+          this.selectedPiece.deselect()
+          this.selectedPiece = null
+          return
+        }
+        ChessPiece.chessEventBus.emit('CHESS:SELECT', piece, null)
+        return
+      }
+
+      if (piece) {
+        ChessPiece.chessEventBus.emit('CHESS:SELECT', piece, null)
+      }
+    })
+  }
+
+  private initChesses() {
+    let id = 0
+    // 車 馬 象 士 炮 兵 將
+    for (let i = 0; i < 2; ++i) {
+      const x = i * 8 + 0
+      const piece = ChessFactory.createChessPiece(id, 'Rook', this.color, 'self', x, this.gridSize)
+      id++
+      this.board[x][9] = piece
+    }
+
+    for (let i = 0; i < 2; ++i) {
+      const x = i * 6 + 1
+      const piece = ChessFactory.createChessPiece(id, 'Horse', this.color, 'self', x, this.gridSize)
+      id++
+      this.board[x][9] = piece
+    }
+
+    for (let i = 0; i < 2; ++i) {
+      const x = i * 4 + 2
+      const piece = ChessFactory.createChessPiece(id, 'Bishop', this.color, 'self', x, this.gridSize)
+      id++
+      this.board[x][9] = piece
+    }
+
+    for (let i = 0; i < 2; ++i) {
+      const x = i * 2 + 3
+      const piece = ChessFactory.createChessPiece(id, 'Advisor', this.color, 'self', x, this.gridSize)
+      id++
+      this.board[x][9] = piece
+    }
+
+    for (let i = 0; i < 2; ++i) {
+      const x = i * 6 + 1
+      const piece = ChessFactory.createChessPiece(id, 'Cannon', this.color, 'self', x, this.gridSize)
+      id++
+      this.board[x][7] = piece
+    }
+
+    for (let i = 0; i < 5; ++i) {
+      const x = i * 2 + 0
+      const piece = ChessFactory.createChessPiece(id, 'Pawn', this.color, 'self', x, this.gridSize)
+      id++
+      this.board[x][6] = piece
+    }
+
+    for(let i = 0; i < 1; ++i) {
+      const x = 4
+      const piece = ChessFactory.createChessPiece(id, 'King', this.color, 'self', x, this.gridSize)
+      id++
+      this.board[x][9] = piece
+    }
+
+    // 反方棋子
+    const enemyColor = this.color === 'red' ? 'black' : 'red'
+    for (let i = 0; i < 2; ++i) {
+      const x = i * 8 + 0
+      const piece = ChessFactory.createChessPiece(id, 'Rook', enemyColor, 'enemy', x, this.gridSize)
+      id++
+      this.board[x][0] = piece
+    }
+    for (let i = 0; i < 2; ++i) {
+      const x = i * 6 + 1
+      const piece = ChessFactory.createChessPiece(id, 'Horse', enemyColor, 'enemy', x, this.gridSize)
+      id++
+      this.board[x][0] = piece
+    }
+    for (let i = 0; i < 2; ++i) {
+      const x = i * 4 + 2
+      const piece = ChessFactory.createChessPiece(id, 'Bishop', enemyColor, 'enemy', x, this.gridSize)
+      id++
+      this.board[x][0] = piece
+    }
+    for (let i = 0; i < 2; ++i) {
+      const x = i * 2 + 3
+      const piece = ChessFactory.createChessPiece(id, 'Advisor', enemyColor, 'enemy', x, this.gridSize)
+      id++
+      this.board[x][0] = piece
+    }
+    for (let i = 0; i < 2; ++i) {
+      const x = i * 6 + 1
+      const piece = ChessFactory.createChessPiece(id, 'Cannon', enemyColor, 'enemy', x, this.gridSize)
+      id++
+      this.board[x][2] = piece
+    }
+    for (let i = 0; i < 5; ++i) {
+      const x = i * 2 + 0
+      const piece = ChessFactory.createChessPiece(id, 'Pawn', enemyColor, 'enemy', x, this.gridSize)
+      id++
+      this.board[x][3] = piece
+    }
+    for(let i = 0; i < 1; ++i) {
+      const x = 4
+      const piece = ChessFactory.createChessPiece(id, 'King', enemyColor, 'enemy', x, this.gridSize)
+      id++
+      this.board[x][0] = piece
+    }
+  }
+
+  private drawChesses() {
+    this.chesses.clearRect(0, 0, this.width, this.height)
+    this.board.forEach((row, x) => {
+      Object.values(row).forEach((piece) => {
+        piece.draw(this.chesses)
+      })
+    })
   }
 
   private drawBoard() {
