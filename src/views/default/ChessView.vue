@@ -1,24 +1,36 @@
 <script lang="ts" setup>
-import { onMounted, useTemplateRef } from 'vue'
+import { inject, onMounted, useTemplateRef } from 'vue'
 
+import type { WebSocketService, EventHandler } from '@/websocket'
 import ChessBoard from '@/composables/ChessBoard'
+import { ChessPiece } from '@/composables/ChessPiece'
 
 const background = useTemplateRef('background')
 const chesses = useTemplateRef('chesses')
 
+const ws = inject<WebSocketService>('ws')
+
+const eventHandler: EventHandler = (message) => {
+  const data = JSON.parse(message.data)
+  if (data.type === 'CHESS:MOVE:END') {
+    const { from, to } = data.payload
+    ChessPiece.chessEventBus.emit('CHESS:MOVE:END', from, to)
+  }
+}
 
 onMounted(() => {
-    const gridSize = 60
-    const canvasBackground = background.value as HTMLCanvasElement
-    const canvasChesses = chesses.value as HTMLCanvasElement
-    const ctxBackground = canvasBackground.getContext('2d')
-    const ctxChesses = canvasChesses.getContext('2d')
+  const gridSize = 60
+  const canvasBackground = background.value as HTMLCanvasElement
+  const canvasChesses = chesses.value as HTMLCanvasElement
+  const ctxBackground = canvasBackground.getContext('2d')
+  const ctxChesses = canvasChesses.getContext('2d')
 
-    if (!ctxBackground || !ctxChesses) {
-        throw new Error('Failed to get canvas context')
-    }
+  if (!ctxBackground || !ctxChesses) {
+    throw new Error('Failed to get canvas context')
+  }
 
-    const chessBoard = new ChessBoard(canvasBackground, canvasChesses, 'red', gridSize)
+  const chessBoard = new ChessBoard(canvasBackground, canvasChesses, 'red', gridSize)
+  ChessPiece.chessEventBus.on('CHESS:MOVE:END', (req, resp) => {})
 })
 </script>
 

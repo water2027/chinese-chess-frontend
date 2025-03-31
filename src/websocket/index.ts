@@ -1,16 +1,21 @@
 import { ref } from 'vue'
 
-interface WebSocketMessage {
+export interface WebSocketMessage {
   type: string
   data: any
 }
 
-type EventHandler = (message: WebSocketMessage) => void
+export type EventHandler = (message: WebSocketMessage) => void
 
-export const useWebSocket = (url: string, eventHandler: EventHandler) => {
+export interface WebSocketService {
+  connect: (url: string, eventHandler: EventHandler) => void;
+  sendMessage: (message: WebSocketMessage) => void;
+}
+
+export const useWebSocket = () => {
   const socket = ref<WebSocket | null>(null)
 
-  const connect = () => {
+  const connect = (url: string, eventHandler: EventHandler) => {
     socket.value = new WebSocket(url)
 
     socket.value.onopen = () => {

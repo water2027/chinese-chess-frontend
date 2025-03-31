@@ -5,7 +5,7 @@ type ChessNames = ['Rook', 'Horse', 'Bishop', 'Advisor', 'Cannon', 'Pawn', 'King
 export type ChessColor = 'red' | 'black'
 export type ChessRole = 'self' | 'enemy'
 export type Board = Array<{ [key: string]: ChessPiece }>
-const ChessEvent = ['CHESS:SELECT', 'CHESS:MOVE', 'CHESS:CHECK', 'CHESS:QUERY'] as const
+const ChessEvent = ['CHESS:SELECT', 'CHESS:MOVE:START', 'CHESS:MOVE:END', 'CHESS:CHECK', 'CHESS:QUERY'] as const
 type ChessPosition = { x: number; y: number }
 
 class ChessPiece {

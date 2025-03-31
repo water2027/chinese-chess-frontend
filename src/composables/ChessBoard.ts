@@ -63,7 +63,7 @@ class ChessBoard {
       if (this.selectedPiece) {
         if (!piece || piece.color !== this.selectedPiece.color) {
           const curPiece = this.selectedPiece
-          ChessPiece.chessEventBus.emit('CHESS:MOVE', () => ({
+          ChessPiece.chessEventBus.emit('CHESS:MOVE:START', () => ({
             lastPosition: curPiece.position,
             newPosition: { x, y },
           }))
@@ -92,7 +92,7 @@ class ChessBoard {
       piece.select()
     })
 
-    ChessPiece.chessEventBus.on('CHESS:MOVE', (req, _resp) => {
+    ChessPiece.chessEventBus.on('CHESS:MOVE:START', (req, _resp) => {
       const { lastPosition, newPosition } = req()
       const piece = this.board[lastPosition.x][lastPosition.y]
       const targetPiece = this.board[newPosition.x][newPosition.y]
@@ -115,6 +115,11 @@ class ChessBoard {
       this.board[newPosition.x][newPosition.y] = piece
 
       this.currentRole = this.currentRole === 'self' ? 'enemy' : 'self'
+
+      ChessPiece.chessEventBus.emit('CHESS:MOVE:END', () => ({
+        lastPosition,
+        newPosition,
+      }))
     })
 
     ChessPiece.chessEventBus.on('CHESS:CHECK', (req, resp) => {
