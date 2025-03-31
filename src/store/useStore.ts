@@ -24,7 +24,7 @@ export const useUserStore = defineStore('user', () => {
     userInfo.value = newUser
   }
   ApiBus.on('TOKEN:GET', (_req, resp) => {
-    resp.token = token.value
+    resp(token.value)
   })
 
   ApiBus.on('API:UN_AUTH', () => {
@@ -34,8 +34,6 @@ export const useUserStore = defineStore('user', () => {
   ApiBus.on('API:LOGOUT', () => {
     logout()
   })
-
-
 
   return { userInfo, setUser, setToken }
 })

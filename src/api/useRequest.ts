@@ -17,9 +17,10 @@ axios.interceptors.request.use((config) => {
     return config
   }
   // 获取token操作
-  const resp: Record<'token', string> = { token: '' }
-  ApiBus.emit('TOKEN:GET', undefined, resp)
-  const { token } = resp
+  let token
+  ApiBus.emit('TOKEN:GET', undefined, (t: string) => {
+    token = t
+  })
   if (!token) {
     ApiBus.emit('API:UN_AUTH')
     return config

@@ -62,27 +62,29 @@ class ChessBoard {
       const piece = this.board[x][y]
       if (this.selectedPiece) {
         if (!piece || piece.color !== this.selectedPiece.color) {
-          ChessPiece.chessEventBus.emit('CHESS:MOVE', {
-            lastPosition: this.selectedPiece.position,
+          const curPiece = this.selectedPiece
+          ChessPiece.chessEventBus.emit('CHESS:MOVE', () => ({
+            lastPosition: curPiece.position,
             newPosition: { x, y },
-          })
+          }))
           this.selectedPiece.deselect()
           this.selectedPiece = null
           return
         }
-        ChessPiece.chessEventBus.emit('CHESS:SELECT', piece, null)
+        ChessPiece.chessEventBus.emit('CHESS:SELECT', () => piece)
         return
       }
 
       if (piece) {
-        ChessPiece.chessEventBus.emit('CHESS:SELECT', piece, null)
+        ChessPiece.chessEventBus.emit('CHESS:SELECT', () => piece)
       }
     })
   }
 
   private listenEvent() {
-    ChessPiece.chessEventBus.on('CHESS:SELECT', (piece, _resp) => {
-      if (piece.role !== this.currentRole) {
+    ChessPiece.chessEventBus.on('CHESS:SELECT', (req) => {
+      const piece = req()
+      if (!piece || piece.role !== this.currentRole) {
         return
       }
       this.selectedPiece?.deselect()
@@ -91,7 +93,7 @@ class ChessBoard {
     })
 
     ChessPiece.chessEventBus.on('CHESS:MOVE', (req, _resp) => {
-      const { lastPosition, newPosition } = req
+      const { lastPosition, newPosition } = req()
       const piece = this.board[lastPosition.x][lastPosition.y]
       const targetPiece = this.board[newPosition.x][newPosition.y]
       if (!piece) {
@@ -100,7 +102,9 @@ class ChessBoard {
       if (piece.role !== this.currentRole) {
         return
       }
-      piece.move(newPosition)
+      if (!piece.move(newPosition)) {
+        return
+      }
       if (targetPiece) {
         if (targetPiece instanceof King) {
           const winner = this.currentRole
@@ -114,7 +118,7 @@ class ChessBoard {
     })
 
     ChessPiece.chessEventBus.on('CHESS:CHECK', (req, resp) => {
-      const { arr } = req
+      const arr = req()
       let nums = 0
       for (const p of arr) {
         const { x, y } = p
@@ -123,14 +127,14 @@ class ChessBoard {
           nums++
         }
       }
-      resp.nums = nums
+      resp(nums)
     })
 
     ChessPiece.chessEventBus.on('CHESS:QUERY', (req, resp) => {
-      const { x, y } = req
+      const { x, y } = req() as { x: number; y: number }
       const piece = this.board[x][y]
       if (piece) {
-        resp.piece = piece
+        resp(piece)
       }
     })
   }

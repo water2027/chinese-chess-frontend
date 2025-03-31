@@ -95,7 +95,7 @@ class ChessPiece {
   // 这里的坐标是棋盘坐标系，0-8,0-9
   public move(newPosition: ChessPosition) {
     if (!this.isMoveValid(newPosition)) {
-      return
+      return false
     }
     // 清除原来位置
     this.clearFromCanvas()
@@ -103,6 +103,7 @@ class ChessPiece {
     this.position = newPosition
     // 绘制新位置
     this.draw()
+    return true
   }
 
   public isMoveValid(newPosition: ChessPosition): boolean {
@@ -140,15 +141,26 @@ class King extends ChessPiece {
     }
 
     const arr: ChessPosition[] = []
-    for(let i = Math.min(this.position.y, y) + 1; i < Math.max(this.position.y, y); i++) {
+    for (let i = Math.min(this.position.y, y) + 1; i < Math.max(this.position.y, y); i++) {
       arr.push({ x: this.position.x, y: i })
     }
-    const resp = {}
-    ChessPiece.chessEventBus.emit('CHESS:CHECK', { arr }, resp)
-    const { nums } = resp as any
-    if(nums === 0) {
-      ChessPiece.chessEventBus.emit('CHESS:QUERY', newPosition, resp)
-      const { piece } = resp as any
+    let nums = 0
+    ChessPiece.chessEventBus.emit(
+      'CHESS:CHECK',
+      () => arr,
+      (n) => {
+        nums = n
+      },
+    )
+    if (nums === 0) {
+      let piece: any
+      ChessPiece.chessEventBus.emit(
+        'CHESS:QUERY',
+        () => newPosition,
+        (p) => {
+          piece = p
+        },
+      )
       if (piece && piece instanceof King) {
         return true
       }
@@ -235,10 +247,15 @@ class Bishop extends ChessPiece {
 
     const midX = (this.position.x + x) / 2
     const midY = (this.position.y + y) / 2
-    const resp = {}
-    ChessPiece.chessEventBus.emit('CHESS:CHECK', { arr: [{ x: midX, y: midY }] }, resp)
-    const { nums } = resp as any
-    if (nums > 0) {
+    let nums
+    ChessPiece.chessEventBus.emit(
+      'CHESS:CHECK',
+      () => [{ x: midX, y: midY }],
+      (n) => {
+        nums = n
+      },
+    )
+    if (nums === undefined || nums > 0) {
       return false
     }
     return true
@@ -336,10 +353,15 @@ class Rook extends ChessPiece {
         arr.push({ x: i, y: this.position.y })
       }
     }
-    const resp = {}
-    ChessPiece.chessEventBus.emit('CHESS:CHECK', { arr }, resp)
-    const { nums } = resp as any
-    if (nums > 0) {
+    let nums
+    ChessPiece.chessEventBus.emit(
+      'CHESS:CHECK',
+      () => arr,
+      (n) => {
+        nums = n
+      },
+    )
+    if (nums === undefined || nums > 0) {
       return false
     }
 
@@ -383,10 +405,15 @@ class Horse extends ChessPiece {
       const directionY = y - this.position.y > 0 ? 1 : -1
       checkPosition = { x: this.position.x, y: this.position.y + directionY }
     }
-    const resp = {}
-    ChessPiece.chessEventBus.emit('CHESS:CHECK', { arr: [checkPosition] }, resp)
-    const { nums } = resp as any
-    if (nums > 0) {
+    let nums
+    ChessPiece.chessEventBus.emit(
+      'CHESS:CHECK',
+      () => [checkPosition],
+      (n) => {
+        nums = n
+      },
+    )
+    if (nums === undefined || nums > 0) {
       return false
     }
 
@@ -432,10 +459,15 @@ class Cannon extends ChessPiece {
       }
     }
     arr.push(newPosition)
-    const resp = {}
-    ChessPiece.chessEventBus.emit('CHESS:CHECK', { arr }, resp)
-    const { nums } = resp as any
-    if (nums !== 2 && nums !== 0) {
+    let nums
+    ChessPiece.chessEventBus.emit(
+      'CHESS:CHECK',
+      () => arr,
+      (n) => {
+        nums = n
+      },
+    )
+    if (nums === undefined || (nums !== 2 && nums !== 0)) {
       return false
     }
 

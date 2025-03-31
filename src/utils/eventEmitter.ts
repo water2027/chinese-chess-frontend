@@ -1,9 +1,11 @@
-const ApiEvent = ['API:UN_AUTH', 'API:NOT_FOUND', 'API:LOGOUT', 'TOKEN:GET'] as const
+const ApiEvent = ['API:UN_AUTH', 'API:NOT_FOUND', 'API:LOGOUT', 'API:FAIL', 'TOKEN:GET'] as const
 
-type Listener = (req: any, resp: any) => void
+type RequestCallback = (...args: any[]) => any
+type ResponseCallback = (...args: any[]) => any
+type Listener = (req: RequestCallback, resp: ResponseCallback) => void
 
 class EventEmitter<T extends readonly string[]> {
-  private eventNames: T;
+  private eventNames: T
   listeners: Record<T[number], Set<Listener>> = {} as Record<T[number], Set<Listener>>
   constructor(EventNames: T) {
     this.eventNames = EventNames
@@ -24,13 +26,10 @@ class EventEmitter<T extends readonly string[]> {
     this.listeners[eventName].delete(listener)
   }
 
-  emit(eventName: T[number], req: any = {}, resp: any = {}) {
+  emit(eventName: T[number], req: RequestCallback = () => {}, resp: ResponseCallback = () => {}) {
     this.listeners[eventName].forEach((listener) => listener(req, resp))
   }
 }
 
 const ApiBus = new EventEmitter(ApiEvent)
-export {
-  ApiBus,
-  EventEmitter,
-}
+export { ApiBus, EventEmitter }
