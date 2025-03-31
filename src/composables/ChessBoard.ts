@@ -1,5 +1,5 @@
 import { ChessPiece, ChessFactory } from './ChessPiece'
-import type { ChessRole, ChessColor, Board } from './ChessPiece'
+import type { ChessColor, Board, ChessRole } from './ChessPiece'
 import Drawer from './drawer'
 
 class ChessBoard {
@@ -15,11 +15,12 @@ class ChessBoard {
   private height: number
   private selectedPiece: ChessPiece | null = null
   private color: ChessColor
+  private currentRole: ChessRole
 
   constructor(
     boardElement: HTMLCanvasElement,
     chessesElement: HTMLCanvasElement,
-    color: ChessColor,
+    selfColor: ChessColor,
     gridSize: number = 50,
   ) {
     this.boardElement = boardElement
@@ -32,49 +33,30 @@ class ChessBoard {
     this.chessesElement.height = this.height
     this.background = this.boardElement.getContext('2d') as CanvasRenderingContext2D
     this.chesses = this.chessesElement.getContext('2d') as CanvasRenderingContext2D
-    this.color = color
+    this.color = selfColor
+    this.currentRole = selfColor === 'red' ? 'self' : 'enemy'
     this.gridSize = gridSize
     this.board = new Array(9).fill(null).map(() => {
       return {}
     })
 
-    this.initBoard()
-
-    ChessPiece.chessEventBus.on('CHESS:SELECT', (piece, _resp) => {
-      this.selectedPiece?.deselect()
-      this.selectedPiece = piece
-    })
-
-    ChessPiece.chessEventBus.on('CHESS:MOVE', (req, resp) => {
-      const { lastPosition, newPosition, piece } = req
-      delete this.board[lastPosition.x][lastPosition.y]
-      this.board[newPosition.x][newPosition.y] = piece    
-    })
-
-    ChessPiece.chessEventBus.on('CHESS:CHECK', (req, resp) => {
-      const { arr } = req
-      let nums = 0
-      for(const p of arr) {
-        const { x, y } = p
-        const piece = this.board[x][y]
-        if (piece) {
-          nums++
-        }
-      }
-      resp.nums = nums
-    })
+    this.initGame()
   }
 
-  public initBoard() {
+  public initGame() {
     this.drawBoard()
     this.initChesses()
     this.drawChesses()
 
+    this.listenClick()
+    this.listenEvent()
+  }
+
+  private listenClick() {
     this.chessesElement.addEventListener('click', (event) => {
       const rect = this.chessesElement.getBoundingClientRect()
       const x = Math.floor((event.clientX - rect.left) / this.gridSize)
       const y = Math.floor((event.clientY - rect.top) / this.gridSize)
-      console.log('click', x, y)
 
       // 棋子点击事件
       const piece = this.board[x][y]
@@ -92,6 +74,38 @@ class ChessBoard {
       if (piece) {
         piece.select()
       }
+    })
+  }
+
+  private listenEvent() {
+    ChessPiece.chessEventBus.on('CHESS:SELECT', (piece, _resp) => {
+      this.selectedPiece?.deselect()
+      this.selectedPiece = piece
+    })
+
+    ChessPiece.chessEventBus.on('CHESS:MOVE', (req, resp) => {
+      const { lastPosition, newPosition, piece } = req
+      if(piece.role !== this.currentRole) {
+        return
+      }
+      delete this.board[lastPosition.x][lastPosition.y]
+      this.board[newPosition.x][newPosition.y] = piece
+      
+      this.currentRole = this.currentRole === 'self' ? 'enemy' : 'self'
+      resp()
+    })
+
+    ChessPiece.chessEventBus.on('CHESS:CHECK', (req, resp) => {
+      const { arr } = req
+      let nums = 0
+      for(const p of arr) {
+        const { x, y } = p
+        const piece = this.board[x][y]
+        if (piece) {
+          nums++
+        }
+      }
+      resp.nums = nums
     })
   }
 

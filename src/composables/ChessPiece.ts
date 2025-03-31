@@ -106,14 +106,15 @@ class ChessPiece {
         newPosition: newPosition, // 新位置
         piece: this, // 棋子对象
       },
-      null,
+      () => {
+        // 清除原来位置
+        this.clearFromCanvas()
+        // 更新位置
+        this.position = newPosition
+        // 绘制新位置
+        this.draw()
+      },
     )
-    // 清除原来位置
-    this.clearFromCanvas()
-    // 更新位置
-    this.position = newPosition
-    // 绘制新位置
-    this.draw()
   }
 
   public isMoveValid(newPosition: ChessPosition): boolean {
@@ -261,11 +262,8 @@ class Pawn extends ChessPiece {
     const { x, y } = newPosition
 
     const river = this.role === 'enemy' ? 4 : 5
-    console.log(this.role, river, y, this.position.y)
     if (this.role === 'enemy') {
       if (y - this.position.y < 0) {
-        console.log(false)
-
         return false
       }
       if (this.position.y <= river) {
@@ -433,7 +431,6 @@ class Cannon extends ChessPiece {
     const resp = {}
     ChessPiece.chessEventBus.emit('CHESS:CHECK', { arr }, resp)
     const { nums } = resp as any
-    console.log(nums)
     if (nums !== 2 && nums !== 0) {
       return false
     }
