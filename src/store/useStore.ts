@@ -9,6 +9,20 @@ export const useUserStore = defineStore('user', () => {
   const token = ref<string>('')
   const userInfo = ref<UserInfo>()
 
+  const logout = () => {
+    token.value = ''
+    userInfo.value = undefined
+  }
+
+  const setToken = (newToken: string) => {
+    const tokenValue = unref(newToken)
+    token.value = tokenValue
+  }
+
+  const setUser = (user: UserInfo) => {
+    const newUser = unref(user)
+    userInfo.value = newUser
+  }
   ApiBus.on('TOKEN:GET', (_req, resp) => {
     resp.token = token.value
   })
@@ -21,15 +35,7 @@ export const useUserStore = defineStore('user', () => {
     logout()
   })
 
-  const logout = () => {
-    token.value = ''
-    userInfo.value = undefined
-  }
 
-  const setUser = (user: UserInfo) => {
-    const newUser = unref(user)
-    userInfo.value = newUser
-  }
 
-  return { userInfo, setUser }
+  return { userInfo, setUser, setToken }
 })

@@ -5,13 +5,11 @@ import FormContainer from '@/components/FormContainer.vue'
 import type { CustomFormData } from '@/composables/FormExam'
 import { useFormExam } from '@/composables/FormExam'
 
+import { login } from '@/api/user/login'
+import { useUserStore } from '@/store/useStore'
+const { setToken, setUser } = useUserStore()
+
 const loginForm = ref<CustomFormData[]>([
-  {
-    id: 'username',
-    value: '',
-    label: '用户名',
-    autocomplete: 'username'
-  },
   {
     id: 'email',
     value: '',
@@ -29,8 +27,25 @@ const loginForm = ref<CustomFormData[]>([
 ])
 
 const correct = useFormExam(loginForm)
+
+const loginAction = async () => {
+  const email = loginForm.value[0].value
+  const password = loginForm.value[0].value
+
+  const resp = await login({ email, password })
+
+  const { token, name, exp, avatar } = resp
+
+  setToken(token)
+  setUser({ name, exp, avatar })
+}
 </script>
 
 <template>
-  <FormContainer class="w-1/2 mt-5" :form-data="loginForm" :disabled="!correct" />
+  <FormContainer
+    class="w-1/2 mt-5"
+    @submit-form="loginAction"
+    :form-data="loginForm"
+    :disabled="!correct"
+  />
 </template>

@@ -1,11 +1,11 @@
-import axios from 'axios'
+import axios, { type AxiosRequestConfig } from 'axios'
 
 import { ApiBus } from '@/utils/eventEmitter'
 
-interface Response {
+interface Response<T = any> {
   code: number
   message: string
-  data: any
+  data: T
 }
 
 type ErrorHandler = (resp?: Response) => void
@@ -60,8 +60,28 @@ axios.interceptors.response.use(
 )
 
 const instance = axios.create({
-  baseURL: 'http://localhost:3000/api',
+  baseURL: 'http://localhost:8080/api',
   timeout: 5000,
 })
 
-export default instance
+const request = async <T>(config: AxiosRequestConfig): Promise<T> => {
+  const { data } = await instance.request<T>(config)
+  return data
+}
+
+const RequestHandler = {
+  get: <T>(url: string, params?: Record<string, any>) => {
+    return request<T>({ url, method: 'get', params })
+  },
+  post: <T>(url: string, data?: Record<string, any>) => {
+    return request<T>({ url, method: 'post', data })
+  },
+  put: <T>(url: string, data?: Record<string, any>) => {
+    return request<T>({ url, method: 'put', data })
+  },
+  delete: <T>(url: string, data?: Record<string, any>) => {
+    return request<T>({ url, method: 'delete', data })
+  },
+}
+
+export default RequestHandler
