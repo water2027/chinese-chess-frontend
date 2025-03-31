@@ -96,9 +96,6 @@ class ChessPiece {
   // 坐标由棋盘处理，这里接收的是处理好的坐标
   // 这里的坐标是棋盘坐标系，0-8,0-9
   public move(newPosition: ChessPosition) {
-    if (!this.isMoveValid(newPosition)) {
-      return
-    }
     ChessPiece.chessEventBus.emit(
       'CHESS:MOVE',
       {
@@ -107,6 +104,9 @@ class ChessPiece {
         piece: this, // 棋子对象
       },
       () => {
+        if (!this.isMoveValid(newPosition)) {
+          return
+        }
         // 清除原来位置
         this.clearFromCanvas()
         // 更新位置

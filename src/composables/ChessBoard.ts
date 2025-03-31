@@ -85,23 +85,25 @@ class ChessBoard {
 
     ChessPiece.chessEventBus.on('CHESS:MOVE', (req, resp) => {
       const { lastPosition, newPosition, piece } = req
-      if(piece.role !== this.currentRole) {
+      if (piece.role !== this.currentRole) {
         return
       }
+      resp()
       delete this.board[lastPosition.x][lastPosition.y]
       this.board[newPosition.x][newPosition.y] = piece
-      
+
       this.currentRole = this.currentRole === 'self' ? 'enemy' : 'self'
-      resp()
     })
 
     ChessPiece.chessEventBus.on('CHESS:CHECK', (req, resp) => {
       const { arr } = req
       let nums = 0
-      for(const p of arr) {
+      for (const p of arr) {
         const { x, y } = p
         const piece = this.board[x][y]
         if (piece) {
+          console.log(x, y)
+          console.log(piece)
           nums++
         }
       }
@@ -114,49 +116,105 @@ class ChessBoard {
     // 車 馬 象 士 炮 兵 將
     for (let i = 0; i < 2; ++i) {
       const x = i * 8 + 0
-      const piece = ChessFactory.createChessPiece(this.chesses, id, 'Rook', this.color, 'self', x, this.gridSize)
+      const piece = ChessFactory.createChessPiece(
+        this.chesses,
+        id,
+        'Rook',
+        this.color,
+        'self',
+        x,
+        this.gridSize,
+      )
       id++
       this.board[x][9] = piece
     }
 
     for (let i = 0; i < 2; ++i) {
       const x = i * 6 + 1
-      const piece = ChessFactory.createChessPiece(this.chesses, id, 'Horse', this.color, 'self', x, this.gridSize)
+      const piece = ChessFactory.createChessPiece(
+        this.chesses,
+        id,
+        'Horse',
+        this.color,
+        'self',
+        x,
+        this.gridSize,
+      )
       id++
       this.board[x][9] = piece
     }
 
     for (let i = 0; i < 2; ++i) {
       const x = i * 4 + 2
-      const piece = ChessFactory.createChessPiece(this.chesses, id, 'Bishop', this.color, 'self', x, this.gridSize)
+      const piece = ChessFactory.createChessPiece(
+        this.chesses,
+        id,
+        'Bishop',
+        this.color,
+        'self',
+        x,
+        this.gridSize,
+      )
       id++
       this.board[x][9] = piece
     }
 
     for (let i = 0; i < 2; ++i) {
       const x = i * 2 + 3
-      const piece = ChessFactory.createChessPiece(this.chesses, id, 'Advisor', this.color, 'self', x, this.gridSize)
+      const piece = ChessFactory.createChessPiece(
+        this.chesses,
+        id,
+        'Advisor',
+        this.color,
+        'self',
+        x,
+        this.gridSize,
+      )
       id++
       this.board[x][9] = piece
     }
 
     for (let i = 0; i < 2; ++i) {
       const x = i * 6 + 1
-      const piece = ChessFactory.createChessPiece(this.chesses, id, 'Cannon', this.color, 'self', x, this.gridSize)
+      const piece = ChessFactory.createChessPiece(
+        this.chesses,
+        id,
+        'Cannon',
+        this.color,
+        'self',
+        x,
+        this.gridSize,
+      )
       id++
       this.board[x][7] = piece
     }
 
     for (let i = 0; i < 5; ++i) {
       const x = i * 2 + 0
-      const piece = ChessFactory.createChessPiece(this.chesses, id, 'Pawn', this.color, 'self', x, this.gridSize)
+      const piece = ChessFactory.createChessPiece(
+        this.chesses,
+        id,
+        'Pawn',
+        this.color,
+        'self',
+        x,
+        this.gridSize,
+      )
       id++
       this.board[x][6] = piece
     }
 
-    for(let i = 0; i < 1; ++i) {
+    for (let i = 0; i < 1; ++i) {
       const x = 4
-      const piece = ChessFactory.createChessPiece(this.chesses, id, 'King', this.color, 'self', x, this.gridSize)
+      const piece = ChessFactory.createChessPiece(
+        this.chesses,
+        id,
+        'King',
+        this.color,
+        'self',
+        x,
+        this.gridSize,
+      )
       id++
       this.board[x][9] = piece
     }
@@ -165,43 +223,99 @@ class ChessBoard {
     const enemyColor = this.color === 'red' ? 'black' : 'red'
     for (let i = 0; i < 2; ++i) {
       const x = i * 8 + 0
-      const piece = ChessFactory.createChessPiece(this.chesses, id, 'Rook', enemyColor, 'enemy', x, this.gridSize)
+      const piece = ChessFactory.createChessPiece(
+        this.chesses,
+        id,
+        'Rook',
+        enemyColor,
+        'enemy',
+        x,
+        this.gridSize,
+      )
       id++
       this.board[x][0] = piece
     }
     for (let i = 0; i < 2; ++i) {
       const x = i * 6 + 1
-      const piece = ChessFactory.createChessPiece(this.chesses, id, 'Horse', enemyColor, 'enemy', x, this.gridSize)
+      const piece = ChessFactory.createChessPiece(
+        this.chesses,
+        id,
+        'Horse',
+        enemyColor,
+        'enemy',
+        x,
+        this.gridSize,
+      )
       id++
       this.board[x][0] = piece
     }
     for (let i = 0; i < 2; ++i) {
       const x = i * 4 + 2
-      const piece = ChessFactory.createChessPiece(this.chesses, id, 'Bishop', enemyColor, 'enemy', x, this.gridSize)
+      const piece = ChessFactory.createChessPiece(
+        this.chesses,
+        id,
+        'Bishop',
+        enemyColor,
+        'enemy',
+        x,
+        this.gridSize,
+      )
       id++
       this.board[x][0] = piece
     }
     for (let i = 0; i < 2; ++i) {
       const x = i * 2 + 3
-      const piece = ChessFactory.createChessPiece(this.chesses, id, 'Advisor', enemyColor, 'enemy', x, this.gridSize)
+      const piece = ChessFactory.createChessPiece(
+        this.chesses,
+        id,
+        'Advisor',
+        enemyColor,
+        'enemy',
+        x,
+        this.gridSize,
+      )
       id++
       this.board[x][0] = piece
     }
     for (let i = 0; i < 2; ++i) {
       const x = i * 6 + 1
-      const piece = ChessFactory.createChessPiece(this.chesses, id, 'Cannon', enemyColor, 'enemy', x, this.gridSize)
+      const piece = ChessFactory.createChessPiece(
+        this.chesses,
+        id,
+        'Cannon',
+        enemyColor,
+        'enemy',
+        x,
+        this.gridSize,
+      )
       id++
       this.board[x][2] = piece
     }
     for (let i = 0; i < 5; ++i) {
       const x = i * 2 + 0
-      const piece = ChessFactory.createChessPiece(this.chesses, id, 'Pawn', enemyColor, 'enemy', x, this.gridSize)
+      const piece = ChessFactory.createChessPiece(
+        this.chesses,
+        id,
+        'Pawn',
+        enemyColor,
+        'enemy',
+        x,
+        this.gridSize,
+      )
       id++
       this.board[x][3] = piece
     }
-    for(let i = 0; i < 1; ++i) {
+    for (let i = 0; i < 1; ++i) {
       const x = 4
-      const piece = ChessFactory.createChessPiece(this.chesses, id, 'King', enemyColor, 'enemy', x, this.gridSize)
+      const piece = ChessFactory.createChessPiece(
+        this.chesses,
+        id,
+        'King',
+        enemyColor,
+        'enemy',
+        x,
+        this.gridSize,
+      )
       id++
       this.board[x][0] = piece
     }
