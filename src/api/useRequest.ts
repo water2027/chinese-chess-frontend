@@ -1,6 +1,7 @@
 import axios, { type AxiosRequestConfig } from 'axios'
 
 import { ApiBus } from '@/utils/eventEmitter'
+import { useUserStore } from '@/store/useStore'
 
 interface Response<T = any> {
   code: number
@@ -17,14 +18,7 @@ axios.interceptors.request.use((config) => {
     return config
   }
   // 获取token操作
-  let token
-  ApiBus.emit('TOKEN:GET', undefined, (t: string) => {
-    token = t
-  })
-  if (!token) {
-    ApiBus.emit('API:UN_AUTH')
-    return config
-  }
+  const { token } = useUserStore()
   config.headers.Authorization = `Bearer ${token}`
   return config
 })
@@ -45,6 +39,7 @@ const httpCodeHandler: Record<number, ErrorHandler> = {
 
 axios.interceptors.response.use(
   (resp) => {
+    console.log(resp)
     const { code, data, message } = resp.data as Response
     if (code !== 0) {
       // 业务错误处理
@@ -66,7 +61,14 @@ const instance = axios.create({
 })
 
 const request = async <T>(config: AxiosRequestConfig): Promise<T> => {
-  const { data } = await instance.request<T>(config)
+  const resp = await instance.request<Response<T>>(config)
+  const { code, data, message } = resp.data as Response
+  if (code < 100) {
+    // 业务错误处理
+    errorCodeHandler[code]?.(data)
+    return Promise.reject(message)
+  }
+  console.log(data)
   return data
 }
 

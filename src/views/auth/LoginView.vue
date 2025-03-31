@@ -29,7 +29,7 @@ const correct = useFormExam(loginForm)
 
 const loginAction = async () => {
   const email = loginForm.value[0].value
-  const password = loginForm.value[0].value
+  const password = loginForm.value[1].value
 
   const resp = await login({ email, password })
 

@@ -3,6 +3,8 @@ import { useWebSocket } from './websocket'
 import { showMsg } from './components/MessageBox'
 import { ApiBus } from './utils/eventEmitter'
 import { provide } from 'vue'
+import { useUserStore } from './store/useStore'
+useUserStore()
 ApiBus.on('API:FAIL', (req) => {
   const { message } = req()
   showMsg(message)

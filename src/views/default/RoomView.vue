@@ -1,9 +1,11 @@
 <script lang="ts" setup>
+import { RouterLink } from 'vue-router';
+
 
 </script>
 
 <template>
     <div>
-        <!-- 首页 -->
+        <RouterLink to="/chess">chess</RouterLink>
     </div>
 </template>

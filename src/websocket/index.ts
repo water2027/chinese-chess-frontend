@@ -1,8 +1,8 @@
 import { ref } from 'vue'
 
 export interface WebSocketMessage {
-  type: string
-  data: any
+  type: number
+  data?: any
 }
 
 export type EventHandler = (message: WebSocketMessage) => void
@@ -20,6 +20,7 @@ export const useWebSocket = () => {
 
     socket.value.onopen = () => {
       console.log('WebSocket connection opened.')
+      socket.value?.send(JSON.stringify({ type: 0 }))
     }
 
     socket.value.onmessage = (event) => {
@@ -31,7 +32,7 @@ export const useWebSocket = () => {
     }
 
     socket.value.onerror = (error) => {
-      console.error('WebSocket error:', error)
+      console.log('WebSocket error:', error)
     }
   }
 
