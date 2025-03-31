@@ -44,12 +44,11 @@ class ChessPiece {
     this.isSelected = true
     // 选中时发出事件，通知其他棋子取消选中状态
     ChessPiece.chessEventBus.emit('CHESS:SELECT', this, null)
-    const p = this
     // 闪烁效果
     let count = 0
     this.flashingInterval = setInterval(() => {
       count++
-      count & 1 ? p.clearFromCanvas() : p.draw()
+      count & 1 ? this.clearFromCanvas() : this.draw()
     }, 250)
   }
 
