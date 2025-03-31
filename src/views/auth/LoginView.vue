@@ -6,8 +6,7 @@ import type { CustomFormData } from '@/composables/FormExam'
 import { useFormExam } from '@/composables/FormExam'
 
 import { login } from '@/api/user/login'
-import { useUserStore } from '@/store/useStore'
-const { setToken, setUser } = useUserStore()
+import { ApiBus } from '@/utils/eventEmitter'
 
 const loginForm = ref<CustomFormData[]>([
   {
@@ -34,10 +33,7 @@ const loginAction = async () => {
 
   const resp = await login({ email, password })
 
-  const { token, name, exp, avatar } = resp
-
-  setToken(token)
-  setUser({ name, exp, avatar })
+  ApiBus.emit('API:LOGIN', () => resp)
 }
 </script>
 

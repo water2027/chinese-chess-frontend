@@ -8,8 +8,7 @@ import { useFormExam } from '@/composables/FormExam'
 import { register } from '@/api/user/register'
 import { sendCode } from '@/api/user/send_code'
 
-import { useUserStore } from '@/store/useStore'
-const { setToken, setUser } = useUserStore()
+import { ApiBus } from '@/utils/eventEmitter'
 
 const registerForm = ref<CustomFormData[]>([
   {
@@ -73,10 +72,8 @@ const registerAction = async () => {
   }
 
   const resp = await register({ name, email, password, password2, vcode })
-  const { token, name:newName, exp, avatar } = resp
 
-  setToken(token)
-  setUser({ name: newName, exp, avatar })
+  ApiBus.emit('API:LOGIN', () => resp)
 }
 </script>
 

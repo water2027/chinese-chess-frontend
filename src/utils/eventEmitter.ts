@@ -1,4 +1,4 @@
-const ApiEvent = ['API:UN_AUTH', 'API:NOT_FOUND', 'API:LOGOUT', 'API:FAIL', 'TOKEN:GET'] as const
+const ApiEvent = ['API:UN_AUTH', 'API:NOT_FOUND', 'API:LOGOUT', 'API:FAIL', 'API:LOGIN', 'TOKEN:GET'] as const
 
 type RequestCallback = (...args: any[]) => any
 type ResponseCallback = (...args: any[]) => any

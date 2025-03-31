@@ -63,4 +63,8 @@ ApiBus.on('API:LOGOUT', () => {
   logout()
 })
 
+ApiBus.on('API:LOGIN', () => {
+  router.push('/')
+})
+
 export default router
