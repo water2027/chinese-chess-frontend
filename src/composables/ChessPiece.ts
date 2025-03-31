@@ -5,7 +5,7 @@ type ChessNames = ['Rook', 'Horse', 'Bishop', 'Advisor', 'Cannon', 'Pawn', 'King
 export type ChessColor = 'red' | 'black'
 export type ChessRole = 'self' | 'enemy'
 export type Board = Array<{ [key: string]: ChessPiece }>
-const ChessEvent = ['CHESS:SELECT', 'CHESS:MOVE'] as const
+const ChessEvent = ['CHESS:SELECT', 'CHESS:MOVE', 'CHESS:CHECK'] as const
 type ChessPosition = { x: number; y: number }
 
 class ChessPiece {
@@ -228,6 +228,14 @@ class Bishop extends ChessPiece {
       return false
     }
 
+    const midX = (this.position.x + x) / 2
+    const midY = (this.position.y + y) / 2
+    const resp = {}
+    ChessPiece.chessEventBus.emit('CHESS:CHECK', { arr: [{ x: midX, y: midY }] }, resp)
+    const { nums } = resp as any
+    if (nums > 0) {
+      return false
+    }
     return true
   }
 }

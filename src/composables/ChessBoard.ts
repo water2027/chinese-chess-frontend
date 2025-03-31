@@ -50,6 +50,19 @@ class ChessBoard {
       delete this.board[lastPosition.x][lastPosition.y]
       this.board[newPosition.x][newPosition.y] = piece    
     })
+
+    ChessPiece.chessEventBus.on('CHESS:CHECK', (req, resp) => {
+      const { arr } = req
+      let nums = 0
+      for(const p of arr) {
+        const { x, y } = p
+        const piece = this.board[x][y]
+        if (piece) {
+          nums++
+        }
+      }
+      resp.nums = nums
+    })
   }
 
   public initBoard() {
