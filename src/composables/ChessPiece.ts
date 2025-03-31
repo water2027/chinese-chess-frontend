@@ -1,10 +1,10 @@
 import { EventEmitter } from '@/utils/eventEmitter'
 
-// type ChessEvent = ['CHESS:SELECT']
 // 車 馬 象 士 炮 兵 將
 type ChessNames = ['Rook', 'Horse', 'Bishop', 'Advisor', 'Cannon', 'Pawn', 'King']
 export type ChessColor = 'red' | 'black'
 export type ChessRole = 'self' | 'enemy'
+export type Board = Array<{ [key: string]: ChessPiece }>
 const ChessEvent = ['CHESS:SELECT', 'CHESS:MOVE'] as const
 type ChessPosition = { x: number; y: number }
 
@@ -17,10 +17,11 @@ class ChessPiece {
   private radius: number = 25 // 棋子半径
   private gridSize: number = 50 // 棋盘格子大小
   public isSelected: boolean
-  // 浏览器环境
+  private ctx: CanvasRenderingContext2D
   private flashingInterval: number = 0
   static chessEventBus = new EventEmitter(ChessEvent)
   constructor(
+    ctx: CanvasRenderingContext2D,
     id: number,
     name: string,
     color: ChessColor,
@@ -28,6 +29,7 @@ class ChessPiece {
     position: ChessPosition,
     gridSize: number = 60,
   ) {
+    this.ctx = ctx
     this.id = id
     this.name = name
     this.color = color
@@ -42,10 +44,13 @@ class ChessPiece {
     this.isSelected = true
     // 选中时发出事件，通知其他棋子取消选中状态
     ChessPiece.chessEventBus.emit('CHESS:SELECT', this, null)
+    const p = this
     // 闪烁效果
+    let count = 0
     this.flashingInterval = setInterval(() => {
-      // 这里添加闪烁的逻辑
-    }, 500) // 每500毫秒闪烁一次
+      count++
+      count & 1 ? p.clearFromCanvas() : p.draw()
+    }, 250)
   }
 
   public deselect() {
@@ -53,9 +58,12 @@ class ChessPiece {
     // 取消闪烁效果
     clearInterval(this.flashingInterval)
     this.flashingInterval = 0
+    this.clearFromCanvas()
+    this.draw()
   }
 
-  public draw(ctx: CanvasRenderingContext2D) {
+  public draw() {
+    const ctx = this.ctx
     const x = this.position.x * this.gridSize + this.gridSize / 2
     const y = this.position.y * this.gridSize + this.gridSize / 2
     ctx.beginPath()
@@ -77,7 +85,8 @@ class ChessPiece {
     ctx.fillText(this.name, x, y)
   }
 
-  public clearFromCanvas(ctx: CanvasRenderingContext2D) {
+  private clearFromCanvas() {
+    const ctx = this.ctx
     const x = this.position.x * this.gridSize + this.gridSize / 2
     const y = this.position.y * this.gridSize + this.gridSize / 2
 
@@ -87,21 +96,25 @@ class ChessPiece {
 
   // 坐标由棋盘处理，这里接收的是处理好的坐标
   // 这里的坐标是棋盘坐标系，0-8,0-9
-  public move(newPosition: ChessPosition, ctx: CanvasRenderingContext2D) {
+  public move(newPosition: ChessPosition) {
     if (!this.isMoveValid(newPosition)) {
       return
     }
-    ChessPiece.chessEventBus.emit('CHESS:MOVE', {
-      lastPosition: this.position,  // 上一个位置
-      newPosition: newPosition, // 新位置
-      piece: this, // 棋子对象
-    }, null)
+    ChessPiece.chessEventBus.emit(
+      'CHESS:MOVE',
+      {
+        lastPosition: this.position, // 上一个位置
+        newPosition: newPosition, // 新位置
+        piece: this, // 棋子对象
+      },
+      null,
+    )
     // 清除原来位置
-    this.clearFromCanvas(ctx)
+    this.clearFromCanvas()
     // 更新位置
     this.position = newPosition
     // 绘制新位置
-    this.draw(ctx)
+    this.draw()
   }
 
   public isMoveValid(newPosition: ChessPosition): boolean {
@@ -117,10 +130,16 @@ class ChessPiece {
 }
 
 class King extends ChessPiece {
-  constructor(id: number, color: ChessColor, role: ChessRole, gridSize: number = 50) {
+  constructor(
+    ctx: CanvasRenderingContext2D,
+    id: number,
+    color: ChessColor,
+    role: ChessRole,
+    gridSize: number = 50,
+  ) {
     const name = color === 'red' ? '帥' : '將'
     const position = role === 'enemy' ? { x: 4, y: 0 } : { x: 4, y: 9 }
-    super(id, name, color, role, position, gridSize)
+    super(ctx, id, name, color, role, position, gridSize)
   }
 
   public isMoveValid(newPosition: ChessPosition): boolean {
@@ -145,10 +164,17 @@ class King extends ChessPiece {
 }
 
 class Advisor extends ChessPiece {
-  constructor(id: number, color: ChessColor, role: ChessRole, x: number, gridSize: number = 50) {
+  constructor(
+    ctx: CanvasRenderingContext2D,
+    id: number,
+    color: ChessColor,
+    role: ChessRole,
+    x: number,
+    gridSize: number = 50,
+  ) {
     const name = role === 'enemy' ? '仕' : '士'
     const y = role === 'enemy' ? 0 : 9
-    super(id, name, color, role, { x, y }, gridSize)
+    super(ctx, id, name, color, role, { x, y }, gridSize)
   }
 
   public isMoveValid(newPosition: ChessPosition): boolean {
@@ -175,10 +201,17 @@ class Advisor extends ChessPiece {
 }
 
 class Bishop extends ChessPiece {
-  constructor(id: number, color: ChessColor, role: ChessRole, x: number, gridSize: number = 50) {
+  constructor(
+    ctx: CanvasRenderingContext2D,
+    id: number,
+    color: ChessColor,
+    role: ChessRole,
+    x: number,
+    gridSize: number = 50,
+  ) {
     const name = color === 'red' ? '相' : '象'
     const y = role === 'enemy' ? 0 : 9
-    super(id, name, color, role, { x, y }, gridSize)
+    super(ctx, id, name, color, role, { x, y }, gridSize)
   }
 
   public isMoveValid(newPosition: ChessPosition): boolean {
@@ -201,10 +234,17 @@ class Bishop extends ChessPiece {
 }
 
 class Pawn extends ChessPiece {
-  constructor(id: number, color: ChessColor, role: ChessRole, x: number, gridSize: number = 50) {
+  constructor(
+    ctx: CanvasRenderingContext2D,
+    id: number,
+    color: ChessColor,
+    role: ChessRole,
+    x: number,
+    gridSize: number = 50,
+  ) {
     const name = color === 'red' ? '兵' : '卒'
     const y = role === 'enemy' ? 3 : 6
-    super(id, name, color, role, { x, y }, gridSize)
+    super(ctx, id, name, color, role, { x, y }, gridSize)
   }
 
   public isMoveValid(newPosition: ChessPosition): boolean {
@@ -234,8 +274,8 @@ class Pawn extends ChessPiece {
       }
       return true
     } else {
-      if(this.position.y - y < 0) {
-        return false;
+      if (this.position.y - y < 0) {
+        return false
       }
       if (this.position.y >= river) {
         if (x !== this.position.x) {
@@ -254,10 +294,17 @@ class Pawn extends ChessPiece {
 }
 
 class Rook extends ChessPiece {
-  constructor(id: number, color: ChessColor, role: ChessRole, x: number, gridSize: number = 50) {
+  constructor(
+    ctx: CanvasRenderingContext2D,
+    id: number,
+    color: ChessColor,
+    role: ChessRole,
+    x: number,
+    gridSize: number = 50,
+  ) {
     const name = color === 'red' ? '俥' : '車'
     const y = role === 'enemy' ? 0 : 9
-    super(id, name, color, role, { x, y }, gridSize)
+    super(ctx, id, name, color, role, { x, y }, gridSize)
   }
 
   // public isMoveValid(newPosition: ChessPosition): boolean {
@@ -270,10 +317,17 @@ class Rook extends ChessPiece {
 }
 
 class Horse extends ChessPiece {
-  constructor(id: number, color: ChessColor, role: ChessRole, x: number, gridSize: number = 50) {
+  constructor(
+    ctx: CanvasRenderingContext2D,
+    id: number,
+    color: ChessColor,
+    role: ChessRole,
+    x: number,
+    gridSize: number = 50,
+  ) {
     const name = color === 'red' ? '傌' : '馬'
     const y = role === 'enemy' ? 0 : 9
-    super(id, name, color, role, { x, y }, gridSize)
+    super(ctx, id, name, color, role, { x, y }, gridSize)
   }
 
   public isMoveValid(newPosition: ChessPosition): boolean {
@@ -287,10 +341,17 @@ class Horse extends ChessPiece {
 
 // 炮
 class Cannon extends ChessPiece {
-  constructor(id: number, color: ChessColor, role: ChessRole, x: number, gridSize: number = 50) {
+  constructor(
+    ctx: CanvasRenderingContext2D,
+    id: number,
+    color: ChessColor,
+    role: ChessRole,
+    x: number,
+    gridSize: number = 50,
+  ) {
     const name = color === 'red' ? '炮' : '砲'
     const y = role === 'enemy' ? 2 : 7
-    super(id, name, color, role, { x, y }, gridSize)
+    super(ctx, id, name, color, role, { x, y }, gridSize)
   }
 
   public isMoveValid(newPosition: ChessPosition): boolean {
@@ -304,6 +365,7 @@ class Cannon extends ChessPiece {
 
 class ChessFactory {
   public static createChessPiece(
+    ctx: CanvasRenderingContext2D,
     id: number,
     name: ChessNames[number],
     color: ChessColor,
@@ -313,19 +375,19 @@ class ChessFactory {
   ): ChessPiece {
     switch (name) {
       case 'King':
-        return new King(id, color, role, gridSize)
+        return new King(ctx, id, color, role, gridSize)
       case 'Advisor':
-        return new Advisor(id, color, role, x, gridSize)
+        return new Advisor(ctx, id, color, role, x, gridSize)
       case 'Bishop':
-        return new Bishop(id, color, role, x, gridSize)
+        return new Bishop(ctx, id, color, role, x, gridSize)
       case 'Pawn':
-        return new Pawn(id, color, role, x, gridSize)
+        return new Pawn(ctx, id, color, role, x, gridSize)
       case 'Rook':
-        return new Rook(id, color, role, x, gridSize)
+        return new Rook(ctx, id, color, role, x, gridSize)
       case 'Horse':
-        return new Horse(id, color, role, x, gridSize)
+        return new Horse(ctx, id, color, role, x, gridSize)
       case 'Cannon':
-        return new Cannon(id, color, role, x, gridSize)
+        return new Cannon(ctx, id, color, role, x, gridSize)
       default:
         throw new Error('Invalid chess piece name')
     }
