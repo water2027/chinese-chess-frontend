@@ -1,5 +1,8 @@
 <script lang="ts" setup>
 import { Icon } from '@iconify/vue/dist/iconify.js'
+import { useUserStore } from '@/store/useStore';
+
+const { userInfo } = useUserStore();
 </script>
 
 <template>
@@ -9,13 +12,26 @@ import { Icon } from '@iconify/vue/dist/iconify.js'
       <nav class="w-fit hidden sm:block">
         <ul class="flex flex-row gap-4 mr-6">
           <router-link to="/" class="text-xl p-4 rounded-lg bg-[#e0e0e0]" hover="bg-[#b1aeae]"
-            >Home</router-link
+            >首页</router-link
           >
           <router-link to="/about" class="text-xl p-4 rounded-lg bg-[#e0e0e0]" hover="bg-[#b1aeae]"
-            >About</router-link
+            >关于</router-link
           >
           <router-link to="/room" class="text-xl p-4 rounded-lg bg-[#e0e0e0]" hover="bg-[#b1aeae]"
-            >Room</router-link
+            >大厅</router-link
+          >
+          <a href="javascript:;"
+            v-if="userInfo"
+            class="text-xl p-4 rounded-lg bg-[#e0e0e0]"
+            hover="bg-[#b1aeae]"
+            >{{ userInfo.name }}</a
+          >
+          <RouterLink
+            v-else
+            to="/auth/login"
+            class="text-xl p-4 rounded-lg bg-[#e0e0e0]"
+            hover="bg-[#b1aeae]"
+            >登录</RouterLink
           >
         </ul>
       </nav>
@@ -27,13 +43,26 @@ import { Icon } from '@iconify/vue/dist/iconify.js'
           group-hover="flex"
         >
           <router-link to="/" class="text-xl p-4 rounded-lg bg-[#e0e0e0]" hover="bg-[#b1aeae]"
-            >Home</router-link
+            >首页</router-link
           >
           <router-link to="/about" class="text-xl p-4 rounded-lg bg-[#e0e0e0]" hover="bg-[#b1aeae]"
-            >About</router-link
+            >关于</router-link
           >
           <router-link to="/room" class="text-xl p-4 rounded-lg bg-[#e0e0e0]" hover="bg-[#b1aeae]"
-            >Room</router-link
+            >大厅</router-link
+          >
+          <a href="javascript:;"
+            v-if="userInfo"
+            class="text-xl p-4 rounded-lg bg-[#e0e0e0]"
+            hover="bg-[#b1aeae]"
+            >{{ userInfo.name }}</a
+          >
+          <RouterLink
+            v-else
+            to="/auth/login"
+            class="text-xl p-4 rounded-lg bg-[#e0e0e0]"
+            hover="bg-[#b1aeae]"
+            >登录</RouterLink
           >
         </div>
       </nav>
