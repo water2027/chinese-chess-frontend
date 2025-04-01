@@ -51,9 +51,16 @@ const loginAction = async () => {
     :form-data="loginForm"
     :disabled="!correct"
   >
-    <input type="checkbox" ref="rememberMe">
-      <label for="rememberMe">记住我</label>
-      <span class="text-sm text-gray-500">下次自动登录</span>
-    </input>
+    <div class="flex flex-row justify-between">
+      <div class="mx-a">
+        <input type="checkbox" ref="rememberMe">
+          <label for="rememberMe">记住我</label>
+          <span class="text-sm text-gray-500">下次自动登录</span>
+        </input>
+      </div>
+      <RouterLink class="mx-a text-purple-800" to="/auth/register">
+        注册个账号先
+      </RouterLink>
+    </div>
   </FormContainer>
 </template>

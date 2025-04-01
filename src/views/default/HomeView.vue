@@ -12,7 +12,7 @@ const singlePlay = () => {
 }
 </script>
 <template>
-  <div class="w-full h-full">
+  <main>
     <button @click="singlePlay">single</button>
-  </div>
+  </main>
 </template>

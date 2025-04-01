@@ -24,6 +24,6 @@
         </ul>
       </nav>
     </header>
-    <RouterView />
+    <RouterView class="h-full w-full" />
   </div>
 </template>

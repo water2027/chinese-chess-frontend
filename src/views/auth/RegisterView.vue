@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed, ref } from 'vue'
+import { computed, ref, useTemplateRef } from 'vue'
 
 import FormContainer from '@/components/FormContainer.vue'
 import type { CustomFormData } from '@/composables/FormExam'
@@ -9,6 +9,8 @@ import { register } from '@/api/user/register'
 import { sendCode } from '@/api/user/send_code'
 
 import { ApiBus } from '@/utils/eventEmitter'
+
+const rememberMe = useTemplateRef('rememberMe')
 
 const registerForm = ref<CustomFormData[]>([
   {
@@ -61,17 +63,22 @@ const sendCodeAction = async () => {
 }
 
 const registerAction = async () => {
+  if (!correct.value) {
+    return
+  }
+
   const name = registerForm.value[0].value
   const email = registerForm.value[1].value
   const password = registerForm.value[2].value
   const password2 = registerForm.value[3].value
   const vcode = registerForm.value[4].value
 
-  if (!correct.value) {
-    return
-  }
-
   const resp = await register({ name, email, password, password2, vcode })
+
+  if(rememberMe.value?.checked) {
+    localStorage.setItem('email', email)
+    localStorage.setItem('password', password)
+  }
 
   ApiBus.emit('API:LOGIN', () => resp)
 }
@@ -84,6 +91,17 @@ const registerAction = async () => {
     :form-data="registerForm"
     :disabled="!correct"
   >
+  <div class="flex flex-row justify-between">
+      <div class="mx-a">
+        <input type="checkbox" ref="rememberMe">
+          <label for="rememberMe">记住我</label>
+          <span class="text-sm text-gray-500">下次自动登录</span>
+        </input>
+      </div>
+      <RouterLink class="mx-a text-purple-800" to="/auth/login">
+        有账号了
+      </RouterLink>
+    </div>
     <button
       type="button"
       @click.prevent="sendCodeAction"
