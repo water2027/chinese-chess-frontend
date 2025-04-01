@@ -1,6 +1,6 @@
 import { showMsg } from '@/components/MessageBox'
 import { ref } from 'vue'
-import { ChessPiece } from '@/composables/ChessPiece'
+import { GameBus } from '@/utils/eventEmitter'
 
 export const MessageType = {
   Normal: 1,
@@ -12,7 +12,7 @@ export const MessageType = {
 } as const
 
 export interface WebSocketMessage {
-  type: typeof MessageType[keyof typeof MessageType]
+  type: (typeof MessageType)[keyof typeof MessageType]
   message?: string
   from?: { x: number; y: number }
   to?: { x: number; y: number }
@@ -23,8 +23,8 @@ export interface WebSocketMessage {
 const translateChessPosition = (position: { x: number; y: number }) => {
   const { x, y } = position
   return {
-    x: 8-x,
-    y: 9-y,
+    x: 8 - x,
+    y: 9 - y,
   }
 }
 
@@ -45,7 +45,7 @@ const eventHandler: EventHandler = (data) => {
       to = translateChessPosition(to!)
       console.log('Move from:', from, 'to:', to)
       if (from && to) {
-        ChessPiece.chessEventBus.emit('CHESS:MOVE:START', () => ({ from, to }))
+        GameBus.emit('CHESS:MOVE:START', () => ({ from, to }))
       } else {
         console.error('Invalid move data:', data)
       }
@@ -53,7 +53,8 @@ const eventHandler: EventHandler = (data) => {
     case MessageType.Start:
       showMsg('Game started')
       const { role } = data
-      ChessPiece.chessEventBus.futureEmit('CHESS:START', () => ({ role }))
+      GameBus.emit('MATCH:SUCCESS')
+      GameBus.futureEmit('GAME:START', () => ({ role }))
       break
     case MessageType.End:
       showMsg('Game ended')
@@ -68,8 +69,8 @@ const eventHandler: EventHandler = (data) => {
   }
 }
 export interface WebSocketService {
-  connect: (url: string) => void;
-  sendMessage: (message: WebSocketMessage) => void;
+  connect: (url: string) => void
+  sendMessage: (message: WebSocketMessage) => void
 }
 
 export const useWebSocket = () => {
@@ -80,7 +81,7 @@ export const useWebSocket = () => {
 
     socket.value.onopen = () => {
       console.log('WebSocket connection opened.')
-      ChessPiece.chessEventBus.on('CHESS:MOVE:END', (req) => {
+      GameBus.on('CHESS:MOVE:END', (req) => {
         const { from, to } = req()
         sendMessage({
           type: MessageType.Move,
@@ -96,7 +97,7 @@ export const useWebSocket = () => {
 
     socket.value.onclose = () => {
       console.log('WebSocket connection closed.')
-      ChessPiece.chessEventBus.off('CHESS:MOVE:END', (req) => {
+      GameBus.off('CHESS:MOVE:END', (req) => {
         const { from, to } = req()
         sendMessage({
           type: MessageType.Move,

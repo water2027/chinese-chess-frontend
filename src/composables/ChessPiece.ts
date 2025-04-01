@@ -1,11 +1,10 @@
-import { EventEmitter } from '@/utils/eventEmitter'
+import { GameBus } from '@/utils/eventEmitter'
 
 // 車 馬 象 士 炮 兵 將
 type ChessNames = ['Rook', 'Horse', 'Bishop', 'Advisor', 'Cannon', 'Pawn', 'King']
 export type ChessColor = 'red' | 'black'
 export type ChessRole = 'self' | 'enemy'
 export type Board = Array<{ [key: string]: ChessPiece }>
-const ChessEvent = ['CHESS:START', 'CHESS:SELECT', 'CHESS:MOVE:START', 'CHESS:MOVE:END', 'CHESS:CHECK', 'CHESS:QUERY'] as const
 type ChessPosition = { x: number; y: number }
 
 class ChessPiece {
@@ -19,7 +18,6 @@ class ChessPiece {
   public isSelected: boolean
   private ctx: CanvasRenderingContext2D
   private flashingInterval: number = 0
-  static chessEventBus = new EventEmitter(ChessEvent)
   constructor(
     ctx: CanvasRenderingContext2D,
     id: number,
@@ -146,7 +144,7 @@ class King extends ChessPiece {
       arr.push({ x: this.position.x, y: i })
     }
     let nums = 0
-    ChessPiece.chessEventBus.emit(
+    GameBus.emit(
       'CHESS:CHECK',
       () => arr,
       (n) => {
@@ -155,7 +153,7 @@ class King extends ChessPiece {
     )
     if (nums === 0) {
       let piece: any
-      ChessPiece.chessEventBus.emit(
+      GameBus.emit(
         'CHESS:QUERY',
         () => newPosition,
         (p) => {
@@ -249,7 +247,7 @@ class Bishop extends ChessPiece {
     const midX = (this.position.x + x) / 2
     const midY = (this.position.y + y) / 2
     let nums
-    ChessPiece.chessEventBus.emit(
+    GameBus.emit(
       'CHESS:CHECK',
       () => [{ x: midX, y: midY }],
       (n) => {
@@ -355,7 +353,7 @@ class Rook extends ChessPiece {
       }
     }
     let nums
-    ChessPiece.chessEventBus.emit(
+    GameBus.emit(
       'CHESS:CHECK',
       () => arr,
       (n) => {
@@ -407,7 +405,7 @@ class Horse extends ChessPiece {
       checkPosition = { x: this.position.x, y: this.position.y + directionY }
     }
     let nums
-    ChessPiece.chessEventBus.emit(
+    GameBus.emit(
       'CHESS:CHECK',
       () => [checkPosition],
       (n) => {
@@ -461,7 +459,7 @@ class Cannon extends ChessPiece {
     }
     arr.push(newPosition)
     let nums
-    ChessPiece.chessEventBus.emit(
+    GameBus.emit(
       'CHESS:CHECK',
       () => arr,
       (n) => {

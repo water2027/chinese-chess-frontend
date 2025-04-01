@@ -3,12 +3,9 @@ import { inject, onMounted, useTemplateRef } from 'vue'
 
 import { type WebSocketService, MessageType } from '@/websocket'
 import ChessBoard from '@/composables/ChessBoard'
-import { ChessPiece } from '@/composables/ChessPiece'
 
 const background = useTemplateRef('background')
 const chesses = useTemplateRef('chesses')
-
-const ws = inject<WebSocketService>('ws')
 
 onMounted(() => {
   const gridSize = 60

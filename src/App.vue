@@ -14,6 +14,13 @@ ApiBus.on('API:FAIL', (req) => {
 const ws = useWebSocket()
 provide('ws', ws)
 
+const WebsocketURL = import.meta.env.VITE_WEBSOCKET_URL||'ws://localhost:8080/ws'
+
+ApiBus.on('API:LOGIN', (req) => {
+  const { token } = req()
+  ws.connect(`${WebsocketURL}?token=${token}`)
+})
+
 onMounted(async () => {
   const email = localStorage.getItem('email')
   const password = localStorage.getItem('password')

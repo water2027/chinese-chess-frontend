@@ -3,6 +3,8 @@ import axios, { type AxiosRequestConfig } from 'axios'
 import { ApiBus } from '@/utils/eventEmitter'
 import { useUserStore } from '@/store/useStore'
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api'
+
 interface Response<T = any> {
   code: number
   message: string

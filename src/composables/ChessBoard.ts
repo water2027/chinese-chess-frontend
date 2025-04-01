@@ -1,6 +1,7 @@
 import { ChessPiece, ChessFactory, King } from './ChessPiece'
 import type { ChessColor, Board, ChessRole } from './ChessPiece'
 import Drawer from './drawer'
+import { GameBus } from '@/utils/eventEmitter'
 
 class ChessBoard {
   private board: Board
@@ -59,7 +60,7 @@ class ChessBoard {
       if (this.selectedPiece) {
         if (!piece || piece.color !== this.selectedPiece.color) {
           const curPiece = this.selectedPiece
-          ChessPiece.chessEventBus.emit('CHESS:MOVE:START', () => ({
+          GameBus.emit('CHESS:MOVE:START', () => ({
             from: curPiece.position,
             to: { x, y },
           }))
@@ -74,7 +75,7 @@ class ChessBoard {
         if(this.currentRole === 'enemy') {
           return
         }
-        ChessPiece.chessEventBus.emit('CHESS:SELECT', () => piece)
+        GameBus.emit('CHESS:SELECT', () => piece)
         return
       }
 
@@ -85,13 +86,13 @@ class ChessBoard {
         if(this.currentRole === 'enemy') {
           return
         }
-        ChessPiece.chessEventBus.emit('CHESS:SELECT', () => piece)
+        GameBus.emit('CHESS:SELECT', () => piece)
       }
     })
   }
 
   private listenEvent() {
-    ChessPiece.chessEventBus.on('CHESS:SELECT', (req) => {
+    GameBus.on('CHESS:SELECT', (req) => {
       const piece = req()
       // 联网
       if (!piece || piece.color !== this.color) {
@@ -106,7 +107,7 @@ class ChessBoard {
       piece.select()
     })
 
-    ChessPiece.chessEventBus.on('CHESS:MOVE:START', (req, _resp) => {
+    GameBus.on('CHESS:MOVE:START', (req, _resp) => {
       const { from: lastPosition, to: newPosition } = req()
       const piece = this.board[lastPosition.x][lastPosition.y]
       const targetPiece = this.board[newPosition.x][newPosition.y]
@@ -136,7 +137,7 @@ class ChessBoard {
       // 只有自己走才发送走子事件
       if (this.currentRole === 'self') {
         // 为避免对方走又发送一次走子事件
-        ChessPiece.chessEventBus.emit('CHESS:MOVE:END', () => ({
+        GameBus.emit('CHESS:MOVE:END', () => ({
           from: lastPosition,
           to: newPosition,
         }))
@@ -144,7 +145,7 @@ class ChessBoard {
       this.currentRole = this.currentRole === 'self' ? 'enemy' : 'self'
     })
 
-    ChessPiece.chessEventBus.on('CHESS:CHECK', (req, resp) => {
+    GameBus.on('CHESS:CHECK', (req, resp) => {
       const arr = req()
       let nums = 0
       for (const p of arr) {
@@ -157,7 +158,7 @@ class ChessBoard {
       resp(nums)
     })
 
-    ChessPiece.chessEventBus.on('CHESS:QUERY', (req, resp) => {
+    GameBus.on('CHESS:QUERY', (req, resp) => {
       const { x, y } = req() as { x: number; y: number }
       const piece = this.board[x][y]
       if (piece) {
@@ -165,9 +166,7 @@ class ChessBoard {
       }
     })
 
-    console.log('listen start')
-    ChessPiece.chessEventBus.on('CHESS:START', (req) => {
-      console.log('Game started')
+    GameBus.on('GAME:START', (req) => {
       const { role } = req()
       this.currentRole = role === 'red' ? 'self' : 'enemy'
       this.color = role

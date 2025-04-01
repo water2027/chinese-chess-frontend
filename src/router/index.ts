@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
-import { ApiBus } from '@/utils/eventEmitter'
+import { ApiBus, GameBus } from '@/utils/eventEmitter'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -65,6 +65,10 @@ ApiBus.on('API:LOGOUT', () => {
 
 ApiBus.on('API:LOGIN', () => {
   router.push('/')
+})
+
+GameBus.on('MATCH:SUCCESS', () => {
+  router.push('/chess')
 })
 
 export default router

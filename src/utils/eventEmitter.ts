@@ -1,4 +1,5 @@
 const ApiEvent = ['API:UN_AUTH', 'API:NOT_FOUND', 'API:LOGOUT', 'API:FAIL', 'API:LOGIN'] as const
+const ChessEvent = ['MATCH:SUCCESS', 'GAME:START', 'CHESS:SELECT', 'CHESS:MOVE:START', 'CHESS:MOVE:END', 'CHESS:CHECK', 'CHESS:QUERY'] as const
 
 type RequestCallback = (...args: any[]) => any
 type ResponseCallback = (...args: any[]) => any
@@ -43,7 +44,6 @@ class EventEmitter<T extends readonly string[]> {
     req: RequestCallback = () => {},
     resp: ResponseCallback = () => {},
   ) {
-    console.log('futureEmit', eventName, req, resp)
     if (!this.futureEvents[eventName]) {
       this.futureEvents[eventName] = []
     }
@@ -52,4 +52,5 @@ class EventEmitter<T extends readonly string[]> {
 }
 
 const ApiBus = new EventEmitter(ApiEvent)
-export { ApiBus, EventEmitter }
+const GameBus = new EventEmitter(ChessEvent)
+export { ApiBus, GameBus }

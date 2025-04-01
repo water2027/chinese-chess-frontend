@@ -1,10 +1,7 @@
 <script lang="ts" setup>
-import { inject, onMounted } from 'vue'
+import { inject } from 'vue'
 
-import { useUserStore } from '@/store/useStore'
 import { type WebSocketService, MessageType } from '@/websocket'
-
-const { token } = useUserStore()
 
 const ws = inject<WebSocketService>('ws')
 const match = () => {
@@ -12,9 +9,6 @@ const match = () => {
     type: MessageType.Match,
   })
 }
-onMounted(() => {
-  ws?.connect(`ws://localhost:8080/ws?token=${token}`)
-})
 </script>
 
 <template>
