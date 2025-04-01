@@ -16,3 +16,11 @@ a {
   text-decoration: none;
   color: inherit;
 }
+
+p {
+  text-indent: 2em;
+}
+
+#app {
+  background-color: #d5d3c9;
+}

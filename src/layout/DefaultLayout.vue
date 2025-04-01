@@ -13,10 +13,10 @@
 </style>
 
 <template>
-  <div class="w-full h-full flex flex-col justify-between items-center bg-gray-100">
+  <div class="w-full h-full flex flex-col justify-between items-center">
     <header class="flex flex-row w-full justify-between items-center p-4 shadow-xl">
-      <h1>Chinese Chess</h1>
-      <nav>
+      <h1 class="w-fit">ChineseChess</h1>
+      <nav class="w-fit">
         <ul class="flex flex-row gap-4 mr-6">
           <router-link to="/" class="router_link">Home</router-link>
           <router-link to="/about" class="router_link">About</router-link>
@@ -24,6 +24,6 @@
         </ul>
       </nav>
     </header>
-    <RouterView class="h-full w-full" />
+    <RouterView />
   </div>
 </template>

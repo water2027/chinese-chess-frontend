@@ -5,7 +5,7 @@ type ChessNames = ['Rook', 'Horse', 'Bishop', 'Advisor', 'Cannon', 'Pawn', 'King
 export type ChessColor = 'red' | 'black'
 export type ChessRole = 'self' | 'enemy'
 export type Board = Array<{ [key: string]: ChessPiece }>
-type ChessPosition = { x: number; y: number }
+export type ChessPosition = { x: number; y: number }
 
 class ChessPiece {
   public id: number
