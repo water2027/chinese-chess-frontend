@@ -1,5 +1,6 @@
 <script lang="ts" setup>
-import { onMounted, useTemplateRef } from 'vue'
+import type { Ref } from 'vue'
+import { inject, onMounted, useTemplateRef } from 'vue'
 
 import ChessBoard from '@/composables/ChessBoard'
 import { GameBus } from '@/utils/eventEmitter'
@@ -7,8 +8,11 @@ import { GameBus } from '@/utils/eventEmitter'
 const background = useTemplateRef('background')
 const chesses = useTemplateRef('chesses')
 
+const isPC = inject('isPC') as Ref<boolean>
+
 onMounted(() => {
-  const gridSize = 50
+  console.log(isPC.value)
+  const gridSize = isPC.value ? 70 : 40
   const canvasBackground = background.value as HTMLCanvasElement
   const canvasChesses = chesses.value as HTMLCanvasElement
   const ctxBackground = canvasBackground.getContext('2d')
