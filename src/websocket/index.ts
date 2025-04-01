@@ -1,7 +1,6 @@
 import { showMsg } from '@/components/MessageBox'
 import { ref } from 'vue'
 import { ChessPiece } from '@/composables/ChessPiece'
-import { useRouter } from 'vue-router'
 
 export const MessageType = {
   Normal: 1,
@@ -17,6 +16,8 @@ export interface WebSocketMessage {
   message?: string
   from?: { x: number; y: number }
   to?: { x: number; y: number }
+  role?: string
+  timestamp?: number
 }
 
 const translateChessPosition = (position: { x: number; y: number }) => {
@@ -51,6 +52,8 @@ const eventHandler: EventHandler = (data) => {
       break
     case MessageType.Start:
       showMsg('Game started')
+      const { role } = data
+      ChessPiece.chessEventBus.futureEmit('CHESS:START', () => ({ role }))
       break
     case MessageType.End:
       showMsg('Game ended')
@@ -60,7 +63,7 @@ const eventHandler: EventHandler = (data) => {
       showMsg(errorMessage || 'Error occurred')
       break
     default:
-      console.error('Unknown message type:', type)
+      type
       break
   }
 }
@@ -93,6 +96,14 @@ export const useWebSocket = () => {
 
     socket.value.onclose = () => {
       console.log('WebSocket connection closed.')
+      ChessPiece.chessEventBus.off('CHESS:MOVE:END', (req) => {
+        const { from, to } = req()
+        sendMessage({
+          type: MessageType.Move,
+          from,
+          to,
+        })
+      })
     }
 
     socket.value.onerror = (error) => {
@@ -104,6 +115,7 @@ export const useWebSocket = () => {
     if (socket.value && socket.value.readyState === WebSocket.OPEN) {
       socket.value.send(JSON.stringify(message))
     } else {
+      console.log(socket.value, socket.value?.readyState)
       showMsg('WebSocket is not open. Unable to send message.')
     }
   }

@@ -5,7 +5,7 @@ type ChessNames = ['Rook', 'Horse', 'Bishop', 'Advisor', 'Cannon', 'Pawn', 'King
 export type ChessColor = 'red' | 'black'
 export type ChessRole = 'self' | 'enemy'
 export type Board = Array<{ [key: string]: ChessPiece }>
-const ChessEvent = ['CHESS:SELECT', 'CHESS:MOVE:START', 'CHESS:MOVE:END', 'CHESS:CHECK', 'CHESS:QUERY'] as const
+const ChessEvent = ['CHESS:START', 'CHESS:SELECT', 'CHESS:MOVE:START', 'CHESS:MOVE:END', 'CHESS:CHECK', 'CHESS:QUERY'] as const
 type ChessPosition = { x: number; y: number }
 
 class ChessPiece {
@@ -41,6 +41,7 @@ class ChessPiece {
   }
 
   public select() {
+    if(this.isSelected) return
     this.isSelected = true
     // 闪烁效果
     let count = 0
@@ -102,7 +103,7 @@ class ChessPiece {
     // 更新位置
     this.position = newPosition
     // 绘制新位置
-    this.draw()
+    this.deselect()
     return true
   }
 

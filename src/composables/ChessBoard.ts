@@ -44,10 +44,6 @@ class ChessBoard {
   }
 
   public initGame() {
-    this.drawBoard()
-    this.initChesses()
-    this.drawChesses()
-
     this.listenClick()
     this.listenEvent()
   }
@@ -67,8 +63,15 @@ class ChessBoard {
             from: curPiece.position,
             to: { x, y },
           }))
-          this.selectedPiece.deselect()
           this.selectedPiece = null
+          return
+        }
+        // 不是自己的棋子不能选中
+        if(piece.color !== (this.currentRole === 'self' ? this.color : (this.color === 'red' ? 'black' : 'red'))) {
+          return
+        }
+        // 不是自己的回合不能选中
+        if(this.currentRole === 'enemy') {
           return
         }
         ChessPiece.chessEventBus.emit('CHESS:SELECT', () => piece)
@@ -76,6 +79,12 @@ class ChessBoard {
       }
 
       if (piece) {
+        if(piece.color !== (this.currentRole === 'self' ? this.color : (this.color === 'red' ? 'black' : 'red'))) {
+          return
+        }
+        if(this.currentRole === 'enemy') {
+          return
+        }
         ChessPiece.chessEventBus.emit('CHESS:SELECT', () => piece)
       }
     })
@@ -98,16 +107,16 @@ class ChessBoard {
     })
 
     ChessPiece.chessEventBus.on('CHESS:MOVE:START', (req, _resp) => {
-      const { from:lastPosition, to:newPosition } = req()
+      const { from: lastPosition, to: newPosition } = req()
       const piece = this.board[lastPosition.x][lastPosition.y]
       const targetPiece = this.board[newPosition.x][newPosition.y]
       if (!piece) {
         return
       }
       // 联网
-      if (piece.color !== this.color) {
-        return
-      }
+      // if (piece.color !== this.color) {
+      //   return
+      // }
       // 本地
       // if (piece.role !== this.currentRole) {
       //   return
@@ -124,16 +133,15 @@ class ChessBoard {
       delete this.board[lastPosition.x][lastPosition.y]
       this.board[newPosition.x][newPosition.y] = piece
 
-      this.currentRole = this.currentRole === 'self' ? 'enemy' : 'self'
-
-      // 现在是自己走，说明刚刚是对方刚走完
-      if(this.currentRole !== 'self') {
+      // 只有自己走才发送走子事件
+      if (this.currentRole === 'self') {
         // 为避免对方走又发送一次走子事件
         ChessPiece.chessEventBus.emit('CHESS:MOVE:END', () => ({
-          from:lastPosition,
-          to:newPosition,
+          from: lastPosition,
+          to: newPosition,
         }))
       }
+      this.currentRole = this.currentRole === 'self' ? 'enemy' : 'self'
     })
 
     ChessPiece.chessEventBus.on('CHESS:CHECK', (req, resp) => {
@@ -155,6 +163,18 @@ class ChessBoard {
       if (piece) {
         resp(piece)
       }
+    })
+
+    console.log('listen start')
+    ChessPiece.chessEventBus.on('CHESS:START', (req) => {
+      console.log('Game started')
+      const { role } = req()
+      this.currentRole = role === 'red' ? 'self' : 'enemy'
+      this.color = role
+
+      this.drawBoard() 
+      this.initChesses() 
+      this.drawChesses()  
     })
   }
 

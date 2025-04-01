@@ -7,6 +7,8 @@ type Listener = (req: RequestCallback, resp: ResponseCallback) => void
 class EventEmitter<T extends readonly string[]> {
   private eventNames: T
   listeners: Record<T[number], Set<Listener>> = {} as Record<T[number], Set<Listener>>
+  futureEvents: Record<T[number], { req: RequestCallback; resp: ResponseCallback }[]> =
+    {} as Record<T[number], { req: RequestCallback; resp: ResponseCallback }[]>
   constructor(EventNames: T) {
     this.eventNames = EventNames
     this.eventNames.forEach((eventName) => {
@@ -19,6 +21,12 @@ class EventEmitter<T extends readonly string[]> {
       this.listeners[eventName] = new Set<Listener>()
     }
     this.listeners[eventName].add(listener)
+    if (this.futureEvents[eventName]) {
+      this.futureEvents[eventName].forEach(({ req, resp }) => {
+        listener(req, resp)
+      })
+      delete this.futureEvents[eventName]
+    }
   }
 
   off(eventName: T[number], listener: Listener) {
@@ -28,6 +36,18 @@ class EventEmitter<T extends readonly string[]> {
 
   emit(eventName: T[number], req: RequestCallback = () => {}, resp: ResponseCallback = () => {}) {
     this.listeners[eventName].forEach((listener) => listener(req, resp))
+  }
+
+  futureEmit(
+    eventName: T[number],
+    req: RequestCallback = () => {},
+    resp: ResponseCallback = () => {},
+  ) {
+    console.log('futureEmit', eventName, req, resp)
+    if (!this.futureEvents[eventName]) {
+      this.futureEvents[eventName] = []
+    }
+    this.futureEvents[eventName].push({ req, resp })
   }
 }
 

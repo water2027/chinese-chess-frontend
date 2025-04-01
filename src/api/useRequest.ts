@@ -68,7 +68,6 @@ const request = async <T>(config: AxiosRequestConfig): Promise<T> => {
     errorCodeHandler[code]?.(data)
     return Promise.reject(message)
   }
-  console.log(data)
   return data
 }
 
