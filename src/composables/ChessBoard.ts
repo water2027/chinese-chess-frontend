@@ -17,11 +17,13 @@ class ChessBoard {
   private selectedPiece: ChessPiece | null = null
   private color: ChessColor
   private currentRole: ChessRole
+  private isNetPlay: boolean
 
   constructor(
     boardElement: HTMLCanvasElement,
     chessesElement: HTMLCanvasElement,
     selfColor: ChessColor,
+    netPlay: boolean = false,
     gridSize: number = 50,
   ) {
     this.boardElement = boardElement
@@ -37,6 +39,7 @@ class ChessBoard {
     this.color = selfColor
     this.currentRole = selfColor === 'red' ? 'self' : 'enemy'
     this.gridSize = gridSize
+    this.isNetPlay = netPlay
     this.board = new Array(9).fill(null).map(() => {
       return {}
     })
@@ -49,64 +52,78 @@ class ChessBoard {
     this.listenEvent()
   }
 
-  private listenClick() {
-    this.chessesElement.addEventListener('click', (event) => {
-      const rect = this.chessesElement.getBoundingClientRect()
-      const x = Math.floor((event.clientX - rect.left) / this.gridSize)
-      const y = Math.floor((event.clientY - rect.top) / this.gridSize)
+  private clickHandler(event: MouseEvent) {
+    const rect = this.chessesElement.getBoundingClientRect()
+    const x = Math.floor((event.clientX - rect.left) / this.gridSize)
+    const y = Math.floor((event.clientY - rect.top) / this.gridSize)
 
-      // 棋子点击事件
-      const piece = this.board[x][y]
-      if (this.selectedPiece) {
-        if (!piece || piece.color !== this.selectedPiece.color) {
-          const curPiece = this.selectedPiece
-          GameBus.emit('CHESS:MOVE:START', () => ({
-            from: curPiece.position,
-            to: { x, y },
-          }))
-          this.selectedPiece = null
-          return
-        }
-        // 不是自己的棋子不能选中
-        if(piece.color !== (this.currentRole === 'self' ? this.color : (this.color === 'red' ? 'black' : 'red'))) {
-          return
-        }
-        // 不是自己的回合不能选中
-        if(this.currentRole === 'enemy') {
-          return
-        }
-        GameBus.emit('CHESS:SELECT', () => piece)
+    // 自己是什么颜色
+    const selfColor = this.color
+    // 对方是什么颜色
+    const enemyColor = this.color === 'red' ? 'black' : 'red'
+
+    // 棋子点击事件
+    const piece = this.board[x][y]
+    if (this.selectedPiece) {
+      if (!piece || piece.color !== this.selectedPiece.color) {
+        const curPiece = this.selectedPiece
+        GameBus.emit('CHESS:MOVE:START', () => ({
+          from: curPiece.position,
+          to: { x, y },
+        }))
+        this.selectedPiece = null
         return
       }
-
-      if (piece) {
-        if(piece.color !== (this.currentRole === 'self' ? this.color : (this.color === 'red' ? 'black' : 'red'))) {
-          return
-        }
-        if(this.currentRole === 'enemy') {
-          return
-        }
-        GameBus.emit('CHESS:SELECT', () => piece)
+      // 不是当前角色的棋子不能选中
+      if (piece.color !== (this.currentRole === 'self' ? selfColor : enemyColor)) {
+        return
       }
+      // 不是自己的回合不能选中
+      if (this.isNetPlay) {
+        if (this.currentRole === 'enemy') {
+          return
+        }
+      }
+      // GameBus.emit('CHESS:SELECT', () => piece)
+      this.selectPiece(piece)
+      return
+    }
+
+    if (piece) {
+      if (piece.color !== (this.currentRole === 'self' ? selfColor : enemyColor)) {
+        return
+      }
+      if (this.isNetPlay) {
+        if (this.currentRole === 'enemy') {
+          return
+        }
+      }
+      this.selectPiece(piece)
+    }
+  }
+
+  private listenClick() {
+    this.chessesElement.addEventListener('click', this.clickHandler.bind(this))
+    GameBus.on('GAME:END', () => {
+      this.chessesElement.removeEventListener('click', this.clickHandler.bind(this))
     })
   }
 
-  private listenEvent() {
-    GameBus.on('CHESS:SELECT', (req) => {
-      const piece = req()
-      // 联网
-      if (!piece || piece.color !== this.color) {
-        return
-      }
-      // 本地
-      // if (!piece || piece.role !== this.currentRole) {
-      //   return
-      // }
-      this.selectedPiece?.deselect()
-      this.selectedPiece = piece
-      piece.select()
-    })
+  private selectPiece(piece: ChessPiece) {
+    // 联网
+    if (!piece || piece.color !== this.color) {
+      return
+    }
+    // 本地
+    // if (!piece || piece.role !== this.currentRole) {
+    //   return
+    // }
+    this.selectedPiece?.deselect()
+    this.selectedPiece = piece
+    piece.select()
+  }
 
+  private listenEvent() {
     GameBus.on('CHESS:MOVE:START', (req, _resp) => {
       const { from: lastPosition, to: newPosition } = req()
       const piece = this.board[lastPosition.x][lastPosition.y]
@@ -114,35 +131,27 @@ class ChessBoard {
       if (!piece) {
         return
       }
-      // 联网
-      // if (piece.color !== this.color) {
-      //   return
-      // }
-      // 本地
-      // if (piece.role !== this.currentRole) {
-      //   return
-      // }
+
       if (!piece.move(newPosition)) {
         return
       }
-      if (targetPiece) {
-        if (targetPiece instanceof King) {
-          const winner = this.currentRole
-          setTimeout(() => alert(`${winner} win!`))
-        }
-      }
-      delete this.board[lastPosition.x][lastPosition.y]
-      this.board[newPosition.x][newPosition.y] = piece
 
       // 只有自己走才发送走子事件
       if (this.currentRole === 'self') {
-        // 为避免对方走又发送一次走子事件
         GameBus.emit('CHESS:MOVE:END', () => ({
           from: lastPosition,
           to: newPosition,
         }))
       }
+      if (targetPiece) {
+        if (targetPiece instanceof King) {
+          const winner = this.currentRole === 'self' ? this.color : targetPiece.color
+          GameBus.emit('GAME:END', () => winner)
+        }
+      }
       this.currentRole = this.currentRole === 'self' ? 'enemy' : 'self'
+      delete this.board[lastPosition.x][lastPosition.y]
+      this.board[newPosition.x][newPosition.y] = piece
     })
 
     GameBus.on('CHESS:CHECK', (req, resp) => {
@@ -171,9 +180,9 @@ class ChessBoard {
       this.currentRole = role === 'red' ? 'self' : 'enemy'
       this.color = role
 
-      this.drawBoard() 
-      this.initChesses() 
-      this.drawChesses()  
+      this.drawBoard()
+      this.initChesses()
+      this.drawChesses()
     })
   }
 

@@ -18,6 +18,7 @@ export interface WebSocketMessage {
   to?: { x: number; y: number }
   role?: string
   timestamp?: number
+  winner?: string
 }
 
 const translateChessPosition = (position: { x: number; y: number }) => {
@@ -87,6 +88,13 @@ export const useWebSocket = () => {
           type: MessageType.Move,
           from,
           to,
+        })
+      })
+      GameBus.on('GAME:END', (req) =>{
+        const winner = req()
+        sendMessage({
+          type: MessageType.End,
+          winner,
         })
       })
     }

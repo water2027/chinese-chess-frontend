@@ -13,7 +13,6 @@ const match = () => {
 
 <template>
   <div>
-    <RouterLink to="/chess">chess</RouterLink>
     <button @click="match">match</button>
   </div>
 </template>
