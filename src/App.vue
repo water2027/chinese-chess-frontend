@@ -27,7 +27,7 @@ onMounted(async () => {
   if (email && password) {
     const resp = await login({ email, password })
 
-    ApiBus.emit('API:LOGIN', () => resp)
+    ApiBus.emit('API:LOGIN', () => ({...resp, stop: true}))
   }
 })
 </script>

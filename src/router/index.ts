@@ -70,7 +70,8 @@ ApiBus.on('API:LOGOUT', () => {
   logout()
 })
 
-ApiBus.on('API:LOGIN', () => {
+ApiBus.on('API:LOGIN', (req) => {
+  if(req().stop) return
   router.push('/')
 })
 

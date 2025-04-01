@@ -1,14 +1,14 @@
 <script lang="ts" setup>
-import { inject, onMounted, useTemplateRef } from 'vue'
+import { onMounted, useTemplateRef } from 'vue'
 
-import { type WebSocketService, MessageType } from '@/websocket'
 import ChessBoard from '@/composables/ChessBoard'
+import { GameBus } from '@/utils/eventEmitter'
 
 const background = useTemplateRef('background')
 const chesses = useTemplateRef('chesses')
 
 onMounted(() => {
-  const gridSize = 60
+  const gridSize = 50
   const canvasBackground = background.value as HTMLCanvasElement
   const canvasChesses = chesses.value as HTMLCanvasElement
   const ctxBackground = canvasBackground.getContext('2d')
@@ -19,7 +19,10 @@ onMounted(() => {
   }
 
   const chessBoard = new ChessBoard(canvasBackground, canvasChesses, 'red', gridSize)
-
+  GameBus.on('GAME:START', (req) => {
+    const { color, isNet } = req()
+    chessBoard.start(color, isNet)
+  })
 })
 </script>
 

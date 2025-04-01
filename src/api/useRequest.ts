@@ -41,7 +41,6 @@ const httpCodeHandler: Record<number, ErrorHandler> = {
 
 axios.interceptors.response.use(
   (resp) => {
-    console.log(resp)
     const { code, data, message } = resp.data as Response
     if (code !== 0) {
       // 业务错误处理

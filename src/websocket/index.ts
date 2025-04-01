@@ -44,7 +44,6 @@ const eventHandler: EventHandler = (data) => {
       let { from, to } = data
       from = translateChessPosition(from!)
       to = translateChessPosition(to!)
-      console.log('Move from:', from, 'to:', to)
       if (from && to) {
         GameBus.emit('CHESS:MOVE:START', () => ({ from, to }))
       } else {
@@ -55,7 +54,7 @@ const eventHandler: EventHandler = (data) => {
       showMsg('Game started')
       const { role } = data
       GameBus.emit('MATCH:SUCCESS')
-      GameBus.futureEmit('GAME:START', () => ({ role }))
+      GameBus.futureEmit('GAME:START', () => ({ color: role, isNet: true }))
       break
     case MessageType.End:
       showMsg('Game ended')
@@ -83,15 +82,17 @@ export const useWebSocket = () => {
     socket.value.onopen = () => {
       console.log('WebSocket connection opened.')
       GameBus.on('CHESS:MOVE:END', (req) => {
-        const { from, to } = req()
+        const { from, to, isNet } = req()
+        if(!isNet) return
         sendMessage({
           type: MessageType.Move,
           from,
           to,
         })
       })
-      GameBus.on('GAME:END', (req) =>{
-        const winner = req()
+      GameBus.on('GAME:END', (req) => {
+        const { winner, isNet } = req()
+        if(!isNet) return
         sendMessage({
           type: MessageType.End,
           winner,

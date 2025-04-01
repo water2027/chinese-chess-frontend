@@ -17,13 +17,12 @@ class ChessBoard {
   private selectedPiece: ChessPiece | null = null
   private color: ChessColor
   private currentRole: ChessRole
-  private isNetPlay: boolean
+  private isNetPlay: boolean = false
 
   constructor(
     boardElement: HTMLCanvasElement,
     chessesElement: HTMLCanvasElement,
     selfColor: ChessColor,
-    netPlay: boolean = false,
     gridSize: number = 50,
   ) {
     this.boardElement = boardElement
@@ -39,7 +38,6 @@ class ChessBoard {
     this.color = selfColor
     this.currentRole = selfColor === 'red' ? 'self' : 'enemy'
     this.gridSize = gridSize
-    this.isNetPlay = netPlay
     this.board = new Array(9).fill(null).map(() => {
       return {}
     })
@@ -70,29 +68,19 @@ class ChessBoard {
         GameBus.emit('CHESS:MOVE:START', () => ({
           from: curPiece.position,
           to: { x, y },
+          isNet: this.isNetPlay,
         }))
         this.selectedPiece = null
         return
       }
+    }
+
+    if (piece) {
       // 不是当前角色的棋子不能选中
       if (piece.color !== (this.currentRole === 'self' ? selfColor : enemyColor)) {
         return
       }
       // 不是自己的回合不能选中
-      if (this.isNetPlay) {
-        if (this.currentRole === 'enemy') {
-          return
-        }
-      }
-      // GameBus.emit('CHESS:SELECT', () => piece)
-      this.selectPiece(piece)
-      return
-    }
-
-    if (piece) {
-      if (piece.color !== (this.currentRole === 'self' ? selfColor : enemyColor)) {
-        return
-      }
       if (this.isNetPlay) {
         if (this.currentRole === 'enemy') {
           return
@@ -110,17 +98,30 @@ class ChessBoard {
   }
 
   private selectPiece(piece: ChessPiece) {
-    // 联网
-    if (!piece || piece.color !== this.color) {
-      return
+    if (!this.isNetPlay) {
+      // 本地
+      if (!piece || piece.role !== this.currentRole) {
+        return
+      }
+    } else {
+      // 联网
+      if (piece.color !== this.color) {
+        return
+      }
     }
-    // 本地
-    // if (!piece || piece.role !== this.currentRole) {
-    //   return
-    // }
+
     this.selectedPiece?.deselect()
     this.selectedPiece = piece
     piece.select()
+  }
+
+  public start(color: ChessColor, isNet: boolean) {
+    this.isNetPlay = isNet
+    this.color = color
+    this.currentRole = color === 'red' ? 'self' : 'enemy'
+    this.drawBoard()
+    this.initChesses()
+    this.drawChesses()
   }
 
   private listenEvent() {
@@ -141,12 +142,13 @@ class ChessBoard {
         GameBus.emit('CHESS:MOVE:END', () => ({
           from: lastPosition,
           to: newPosition,
+          isNet: this.isNetPlay,
         }))
       }
       if (targetPiece) {
         if (targetPiece instanceof King) {
           const winner = this.currentRole === 'self' ? this.color : targetPiece.color
-          GameBus.emit('GAME:END', () => winner)
+          GameBus.emit('GAME:END', () => ({ winner, isNet: this.isNetPlay }))
         }
       }
       this.currentRole = this.currentRole === 'self' ? 'enemy' : 'self'
@@ -173,16 +175,6 @@ class ChessBoard {
       if (piece) {
         resp(piece)
       }
-    })
-
-    GameBus.on('GAME:START', (req) => {
-      const { role } = req()
-      this.currentRole = role === 'red' ? 'self' : 'enemy'
-      this.color = role
-
-      this.drawBoard()
-      this.initChesses()
-      this.drawChesses()
     })
   }
 
