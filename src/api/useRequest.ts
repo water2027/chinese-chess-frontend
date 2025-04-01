@@ -57,7 +57,7 @@ axios.interceptors.response.use(
 )
 
 const instance = axios.create({
-  baseURL: 'http://localhost:8080/api',
+  baseURL: API_URL,
   timeout: 5000,
 })
 
