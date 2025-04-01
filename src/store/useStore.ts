@@ -1,22 +1,30 @@
 import { defineStore } from 'pinia'
 
-import { ref, unref } from 'vue'
+import { computed, ref, unref } from 'vue'
 
 import { ApiBus } from '@/utils/eventEmitter'
 
 // 管理token
 export const useUserStore = defineStore('user', () => {
-  const token = ref<string>('')
+  const t = ref<string>('')
   const userInfo = ref<UserInfo>()
 
+  const token = computed(()=>{
+    if (t.value) {
+      return t.value
+    }
+    ApiBus.emit('API:UN_AUTH')
+    return ''
+  })
+
   const logout = () => {
-    token.value = ''
+    t.value = ''
     userInfo.value = undefined
   }
 
   const setToken = (newToken: string) => {
     const tokenValue = unref(newToken)
-    token.value = tokenValue
+    t.value = tokenValue
   }
 
   const setUser = (user: UserInfo) => {
