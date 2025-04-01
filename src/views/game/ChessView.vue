@@ -24,9 +24,11 @@ onMounted(() => {
 
   const chessBoard = new ChessBoard(canvasBackground, canvasChesses, 'red', gridSize)
   GameBus.on('GAME:START', (req) => {
+    chessBoard.stop()
     const { color, isNet } = req()
     chessBoard.start(color, isNet)
   })
+  chessBoard.start('red', false)
 })
 </script>
 
