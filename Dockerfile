@@ -13,7 +13,9 @@ RUN npm run build
 # 生产阶段
 FROM nginx:stable-alpine as production-stage
 COPY --from=build-stage /app/dist /usr/share/nginx/html
-# 复制 nginx 配置（如果有的话）
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+RUN mkdir -p /etc/nginx/ssl
+
 EXPOSE 80
+EXPOSE 443
 CMD ["nginx", "-g", "daemon off;"]
