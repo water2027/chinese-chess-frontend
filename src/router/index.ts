@@ -20,11 +20,6 @@ const router = createRouter({
           component: () => import('../views/default/AboutView.vue'),
         },
         {
-          path: 'chess',
-          name: 'chess',
-          component: () => import('../views/default/ChessView.vue'),
-        },
-        {
           path: 'room',
           name: 'room',
           component: () => import('../views/default/RoomView.vue'),
@@ -48,6 +43,18 @@ const router = createRouter({
         },
       ],
     },
+    {
+      path: '/game/',
+      name: 'game',
+      component: () => import('../layout/GameLayout.vue'),
+      children: [
+        {
+          path: 'chess',
+          name: 'game-chess',
+          component: () => import('../views/game/ChessView.vue'),
+        }
+      ]
+    }
   ],
 })
 
@@ -68,7 +75,7 @@ ApiBus.on('API:LOGIN', () => {
 })
 
 GameBus.on('MATCH:SUCCESS', () => {
-  router.push('/chess')
+  router.push('/game/chess')
 })
 
 export default router
