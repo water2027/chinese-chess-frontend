@@ -46,7 +46,7 @@ const loginAction = async () => {
 
 <template>
   <FormContainer
-    class="w-1/2 mt-5"
+    class="w-full sm:w-1/2 mt-5"
     @submit-form="loginAction"
     :form-data="loginForm"
     :disabled="!correct"
