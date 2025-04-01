@@ -16,7 +16,7 @@
   <div class="w-full h-full flex flex-col justify-between items-center">
     <header class="flex flex-row w-full justify-between items-center p-4 shadow-xl">
       <h1 class="w-fit">ChineseChess</h1>
-      <nav class="w-fit">
+      <nav class="w-fit hidden sm:block">
         <ul class="flex flex-row gap-4 mr-6">
           <router-link to="/" class="router_link">Home</router-link>
           <router-link to="/about" class="router_link">About</router-link>
