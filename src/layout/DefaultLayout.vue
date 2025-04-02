@@ -1,8 +1,10 @@
 <script lang="ts" setup>
 import { Icon } from '@iconify/vue/dist/iconify.js'
 import { useUserStore } from '@/store/useStore';
+import { storeToRefs } from 'pinia';
 
-const { userInfo } = useUserStore();
+const userStore = useUserStore();
+const { userInfo } = storeToRefs(userStore);
 </script>
 
 <template>
@@ -21,7 +23,7 @@ const { userInfo } = useUserStore();
             >大厅</router-link
           >
           <a href="javascript:;"
-            v-if="userInfo"
+            v-if="userInfo?.name"
             class="text-xl p-4 rounded-lg bg-[#e0e0e0]"
             hover="bg-[#b1aeae]"
             >{{ userInfo.name }}</a
@@ -52,7 +54,7 @@ const { userInfo } = useUserStore();
             >大厅</router-link
           >
           <a href="javascript:;"
-            v-if="userInfo"
+            v-if="userInfo?.name"
             class="text-xl p-4 rounded-lg bg-[#e0e0e0]"
             hover="bg-[#b1aeae]"
             >{{ userInfo.name }}</a

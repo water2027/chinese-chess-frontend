@@ -11,7 +11,6 @@ const chesses = useTemplateRef('chesses')
 const isPC = inject('isPC') as Ref<boolean>
 
 onMounted(() => {
-  console.log(isPC.value)
   const gridSize = isPC.value ? 70 : 40
   const canvasBackground = background.value as HTMLCanvasElement
   const canvasChesses = chesses.value as HTMLCanvasElement
@@ -23,12 +22,12 @@ onMounted(() => {
   }
 
   const chessBoard = new ChessBoard(canvasBackground, canvasChesses, 'red', gridSize)
+  chessBoard.start('red', false)
   GameBus.on('GAME:START', (req) => {
     chessBoard.stop()
     const { color, isNet } = req()
     chessBoard.start(color, isNet)
   })
-  chessBoard.start('red', false)
 })
 </script>
 
