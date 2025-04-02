@@ -1,3 +1,5 @@
-# 一些模板
+# 中国象棋对弈网站
 
-保存一些自己常用的vue模板，免得每次都要初始化很多东西。
+需配合后端食用
+
+[后端地址](https://github.com/water2027/chinese-chess-backend)
