@@ -432,9 +432,7 @@ class Cannon extends ChessPiece {
         }
       }
     }
-    console.log(board[x])
     const piece = board[x][y]
-    console.log(piece)
     if (piece) {
       nums++
     }
