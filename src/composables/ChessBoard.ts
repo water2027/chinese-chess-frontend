@@ -59,12 +59,8 @@ class ChessBoard {
     if (this.selectedPiece) {
       if (!piece || piece.color !== this.selectedPiece.color) {
         const curPiece = this.selectedPiece
-        // GameBus.emit('CHESS:MOVE:START', () => ({
-        //   from: curPiece.position,
-        //   to: { x, y },
-        //   isNet: this.isNetPlay,
-        // }))
-        this.move(curPiece.position, { x, y }, this.isNetPlay)
+        this.move(curPiece.position, { x, y })
+        this.selectedPiece.deselect()
         this.selectedPiece = null
         return
       }
@@ -85,7 +81,7 @@ class ChessBoard {
     }
   }
 
-  private move(from: ChessPosition, to: ChessPosition, isNet: Boolean) {
+  private move(from: ChessPosition, to: ChessPosition) {
     const piece = this.board[from.x][from.y]
     const targetPiece = this.board[to.x][to.y]
     if (!piece) {
@@ -103,7 +99,6 @@ class ChessBoard {
       GameBus.emit('CHESS:MOVE:END', () => ({
         from,
         to,
-        isNet: this.isNetPlay,
       }))
     }
     if (targetPiece) {
@@ -170,7 +165,7 @@ class ChessBoard {
 
   private listenMove(req: () => { from: ChessPosition; to: ChessPosition }) {
     const { from, to } = req()
-    this.move(from, to, true)
+    this.move(from, to)
   }
 
   private listenEvent() {

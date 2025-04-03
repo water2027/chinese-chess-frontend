@@ -98,7 +98,6 @@ class ChessPiece {
     // 更新位置
     this.position = newPosition
     // 绘制新位置
-    this.deselect()
     return true
   }
 
