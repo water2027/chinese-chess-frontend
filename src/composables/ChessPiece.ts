@@ -1,5 +1,3 @@
-import { GameBus } from '@/utils/eventEmitter'
-
 // 車 馬 象 士 炮 兵 將
 type ChessNames = ['Rook', 'Horse', 'Bishop', 'Advisor', 'Cannon', 'Pawn', 'King']
 export type ChessColor = 'red' | 'black'
@@ -101,6 +99,7 @@ class ChessPiece {
     // 更新位置
     this.position = newPosition
     // 绘制新位置
+    this.draw()
     return true
   }
 

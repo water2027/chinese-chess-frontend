@@ -2,7 +2,7 @@ import { showMsg } from '@/components/MessageBox'
 import { ChessPiece, ChessFactory, King } from './ChessPiece'
 import type { ChessColor, Board, ChessRole, ChessPosition } from './ChessPiece'
 import Drawer from './drawer'
-import { GameBus } from '@/utils/eventEmitter'
+import channel from '@/utils/channel'
 
 class ChessBoard {
   private board: Board
@@ -37,11 +37,11 @@ class ChessBoard {
     this.chesses = this.chessesElement.getContext('2d') as CanvasRenderingContext2D
   }
 
-  get width():number {
+  get width(): number {
     return this.gridSize * 9
   }
 
-  get height():number {
+  get height(): number {
     return this.gridSize * 10
   }
 
@@ -97,15 +97,12 @@ class ChessBoard {
 
     // 只有自己走才发送走子事件
     if (this.currentRole === 'self') {
-      GameBus.emit('CHESS:MOVE:END', () => ({
-        from,
-        to,
-      }))
+      this.isNetPlay&&channel.emit('NET:CHESS:MOVE:END', { from, to })
     }
     if (targetPiece) {
       if (targetPiece instanceof King) {
         const winner = this.currentRole === 'self' ? this.selfColor : targetPiece.color
-        GameBus.emit('GAME:END', () => ({ winner, isNet: this.isNetPlay }))
+        channel.emit('GAME:END', { winner })
         this.end(winner)
       }
     }
@@ -158,16 +155,16 @@ class ChessBoard {
   public stop() {
     this.chessesElement.removeEventListener('click', this.clickHandler.bind(this))
     this.clear()
-    GameBus.off('CHESS:MOVE', this.listenMove.bind(this))
+    channel.off('NET:CHESS:MOVE')
   }
 
-  private listenMove(req: () => { from: ChessPosition; to: ChessPosition }) {
-    const { from, to } = req()
+  private listenMove(req: { from: ChessPosition; to: ChessPosition }) {
+    const { from, to } = req
     this.move(from, to)
   }
 
   private listenEvent() {
-    GameBus.on('CHESS:MOVE', this.listenMove.bind(this))
+    channel.on('NET:CHESS:MOVE', this.listenMove.bind(this))
   }
 
   private initChesses() {
@@ -387,7 +384,7 @@ class ChessBoard {
     this.chessesElement.height = this.height
   }
 
-  public redraw(newSize:number = this.gridSize) {
+  public redraw(newSize: number = this.gridSize) {
     this.clear()
     this.gridSize = newSize
     this.initCanvasElement()

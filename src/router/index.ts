@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
-import { ApiBus, GameBus } from '@/utils/eventEmitter'
+import { ApiBus } from '@/utils/eventEmitter'
+import channel from '@/utils/channel'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -75,7 +76,7 @@ ApiBus.on('API:LOGIN', (req) => {
   router.push('/')
 })
 
-GameBus.on('MATCH:SUCCESS', () => {
+channel.on('MATCH:SUCCESS', () => {
   router.push('/game/chess')
 })
 

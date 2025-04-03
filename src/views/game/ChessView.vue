@@ -3,7 +3,7 @@ import type { Ref } from 'vue'
 import { inject, onMounted, useTemplateRef, watch } from 'vue'
 
 import ChessBoard from '@/composables/ChessBoard'
-import { GameBus } from '@/utils/eventEmitter'
+import channel from '@/utils/channel'
 
 const background = useTemplateRef('background')
 const chesses = useTemplateRef('chesses')
@@ -34,10 +34,9 @@ onMounted(() => {
 
   chessBoard = new ChessBoard(canvasBackground, canvasChesses, 'red', gridSize)
   chessBoard.start('red', false)
-  GameBus.on('GAME:START', (req) => {
+  channel.on('NET:GAME:START', ({ color }) => {
     chessBoard.stop()
-    const { color, isNet } = req()
-    chessBoard.start(color, isNet)
+    chessBoard.start(color, true)
   })
 })
 </script>

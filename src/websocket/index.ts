@@ -1,7 +1,7 @@
 import { showMsg } from '@/components/MessageBox'
 import { ref } from 'vue'
-import { GameBus } from '@/utils/eventEmitter'
 import type { ChessPosition } from '@/composables/ChessPiece'
+import channel from '@/utils/channel'
 
 export const MessageType = {
   Normal: 1,
@@ -46,16 +46,16 @@ const eventHandler: EventHandler = (data) => {
       from = translateChessPosition(from!)
       to = translateChessPosition(to!)
       if (from && to) {
-        GameBus.emit('CHESS:MOVE', () => ({ from, to }))
+        channel.emit('NET:CHESS:MOVE', { from, to })
       } else {
         console.error('Invalid move data:', data)
       }
       break
     case MessageType.Start:
       showMsg('Game started')
-      const { role } = data
-      GameBus.emit('MATCH:SUCCESS')
-      GameBus.futureEmit('GAME:START', () => ({ color: role, isNet: true }))
+      const { role } = data as { role: 'red' | 'black' }
+      channel.emit('MATCH:SUCCESS', null)
+      channel.emit('NET:GAME:START', { color: role })
       break
     case MessageType.End:
       showMsg('Game ended')
@@ -71,14 +71,13 @@ const eventHandler: EventHandler = (data) => {
 }
 export interface WebSocketService {
   connect: (url: string) => void
-  
+
   end: (winner: string) => void
   move: (from: ChessPosition, to: ChessPosition) => void
   match: () => void
-
 }
 
-export const useWebSocket = ():WebSocketService => {
+export const useWebSocket = (): WebSocketService => {
   const socket = ref<WebSocket | null>(null)
 
   const connect = (url: string) => {
@@ -86,14 +85,10 @@ export const useWebSocket = ():WebSocketService => {
 
     socket.value.onopen = () => {
       console.log('WebSocket connection opened.')
-      GameBus.on('CHESS:MOVE:END', (req) => {
-        const { from, to, isNet } = req()
-        if (!isNet) return
+      channel.on('NET:CHESS:MOVE:END', ({ from, to }) => {
         move(from, to)
       })
-      GameBus.on('GAME:END', (req) => {
-        const { winner, isNet } = req()
-        if (!isNet) return
+      channel.on('GAME:END', ({ winner }) => {
         end(winner)
       })
     }
@@ -104,10 +99,6 @@ export const useWebSocket = ():WebSocketService => {
 
     socket.value.onclose = () => {
       console.log('WebSocket connection closed.')
-      GameBus.off('CHESS:MOVE:END', (req) => {
-        const { from, to } = req()
-        move(from, to)
-      })
     }
 
     socket.value.onerror = (error) => {

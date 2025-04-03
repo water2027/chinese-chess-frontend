@@ -1,24 +1,17 @@
 <script lang="ts" setup>
-import { GameBus } from '@/utils/eventEmitter'
+import channel from '@/utils/channel'
 import type { WebSocketService } from '@/websocket'
 import { inject } from 'vue'
 
 const ws = inject('ws') as WebSocketService
 
 const singlePlay = () => {
-  GameBus.futureEmit('GAME:START', () => {
-    return {
-      color: 'red',
-      isNet: false,
-    }
-  })
-  GameBus.emit('MATCH:SUCCESS')
+  channel.emit('MATCH:SUCCESS', null)
 }
 
 const onlinePlay = () => {
   ws?.match()
 }
-
 </script>
 <template>
   <main class="h-full sm:w-3/5 mx-a p-1 bg-gray-4 w-9/10">
@@ -34,8 +27,22 @@ const onlinePlay = () => {
       <p>点击左边的按钮本地对战，点击右边的按钮进行随机匹配。</p>
     </article>
     <div class="flex flex-row mt-4">
-      <button class="mx-a p-4 border-0 rounded-2xl bg-gray-2 transition-all duration-200" text="black xl" hover="bg-gray-9 text-gray-2" @click="singlePlay">本地对战</button>
-      <button class="mx-a p-4 border-0 rounded-2xl bg-gray-2 transition-all duration-200" text="black xl" hover="bg-gray-9 text-gray-2" @click="onlinePlay">随机匹配</button>
+      <button
+        class="mx-a p-4 border-0 rounded-2xl bg-gray-2 transition-all duration-200"
+        text="black xl"
+        hover="bg-gray-9 text-gray-2"
+        @click="singlePlay"
+      >
+        本地对战
+      </button>
+      <button
+        class="mx-a p-4 border-0 rounded-2xl bg-gray-2 transition-all duration-200"
+        text="black xl"
+        hover="bg-gray-9 text-gray-2"
+        @click="onlinePlay"
+      >
+        随机匹配
+      </button>
     </div>
   </main>
 </template>

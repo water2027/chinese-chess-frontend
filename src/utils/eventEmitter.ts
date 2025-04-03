@@ -1,5 +1,4 @@
 const ApiEvent = ['API:UN_AUTH', 'API:NOT_FOUND', 'API:LOGOUT', 'API:FAIL', 'API:LOGIN'] as const
-const ChessEvent = ['MATCH:SUCCESS', 'GAME:START', 'GAME:END', 'CHESS:MOVE', 'CHESS:MOVE:END'] as const
 
 type RequestCallback = (...args: any[]) => any
 type ResponseCallback = (...args: any[]) => any
@@ -52,5 +51,4 @@ class EventEmitter<T extends readonly string[]> {
 }
 
 const ApiBus = new EventEmitter(ApiEvent)
-const GameBus = new EventEmitter(ChessEvent)
-export { ApiBus, GameBus }
+export { ApiBus }
