@@ -5,6 +5,10 @@ import { useUserStore } from '@/store/useStore'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api'
 
+const instance = axios.create({
+  baseURL: API_URL,
+  timeout: 5000,
+})
 interface Response<T = any> {
   code: number
   message: string
@@ -13,7 +17,7 @@ interface Response<T = any> {
 
 type ErrorHandler = (resp?: Response) => void
 
-axios.interceptors.request.use((config) => {
+instance.interceptors.request.use((config) => {
   const { url } = config
   if (!url || !url.startsWith('/public')) {
     // 登录接口
@@ -39,10 +43,10 @@ const httpCodeHandler: Record<number, ErrorHandler> = {
   500: () => {},
 }
 
-axios.interceptors.response.use(
+instance.interceptors.response.use(
   (resp) => {
     const { code, data, message } = resp.data as Response
-    if (code !== 0) {
+    if (code < 100) {
       // 业务错误处理
       errorCodeHandler[code]?.(data)
       return Promise.reject(message)
@@ -56,20 +60,9 @@ axios.interceptors.response.use(
   },
 )
 
-const instance = axios.create({
-  baseURL: API_URL,
-  timeout: 5000,
-})
-
 const request = async <T>(config: AxiosRequestConfig): Promise<T> => {
-  const resp = await instance.request<Response<T>>(config)
-  const { code, data, message } = resp.data as Response
-  if (code < 100) {
-    // 业务错误处理
-    errorCodeHandler[code]?.(data)
-    return Promise.reject(message)
-  }
-  return data
+  const resp = await instance.request<T>(config)
+  return resp as T
 }
 
 const RequestHandler = {

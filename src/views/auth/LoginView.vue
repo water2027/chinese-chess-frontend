@@ -33,13 +33,18 @@ const loginAction = async () => {
   const email = loginForm.value[0].value
   const password = loginForm.value[1].value
 
-  const resp = await login({ email, password })
-
-  ApiBus.emit('API:LOGIN', () => resp)
-
-  if(rememberMe.value?.checked) {
-    localStorage.setItem('email', email)
-    localStorage.setItem('password', password)
+  try {
+    const resp = await login({ email, password })
+  
+    ApiBus.emit('API:LOGIN', () => resp)
+  
+    if(rememberMe.value?.checked) {
+      localStorage.setItem('email', email)
+      localStorage.setItem('password', password)
+    }
+  } catch (error) {
+    console.error('Login failed:', error)
+    return 
   }
 }
 </script>

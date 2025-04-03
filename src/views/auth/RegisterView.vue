@@ -54,6 +54,12 @@ const emailIsCorrect = computed(() => {
 
 const correct = useFormExam(registerForm)
 
+const passwordIsCorrect = computed(() => {
+  const password = registerForm.value[2].value
+  const password2 = registerForm.value[3].value
+  return password === password2 && /^\S*(?=\S{6,})(?=\S*\d)(?=\S*[A-Z])(?=\S*[a-z])(?=\S*[!@#$%^&*? ])\S*$/.test(password)
+})
+
 const sendCodeAction = async () => {
   const email = registerForm.value[1].value
   if (!emailIsCorrect.value) {
@@ -73,14 +79,19 @@ const registerAction = async () => {
   const password2 = registerForm.value[3].value
   const vcode = registerForm.value[4].value
 
-  const resp = await register({ name, email, password, password2, vcode })
-
-  if(rememberMe.value?.checked) {
-    localStorage.setItem('email', email)
-    localStorage.setItem('password', password)
+  try {    
+    const resp = await register({ name, email, password, password2, vcode })
+  
+    if(rememberMe.value?.checked) {
+      localStorage.setItem('email', email)
+      localStorage.setItem('password', password)
+    }
+  
+    ApiBus.emit('API:LOGIN', () => resp)
+  } catch (error) {
+    console.error('Register failed:', error)
+    return
   }
-
-  ApiBus.emit('API:LOGIN', () => resp)
 }
 </script>
 
@@ -91,6 +102,13 @@ const registerAction = async () => {
     :form-data="registerForm"
     :disabled="!correct"
   >
+  <span v-if="!passwordIsCorrect" class="text-red-500 text-sm">
+    密码至少6位，包含大小写字母、数字和!@#$%^&*? 中的一个
+    <br>
+  </span>
+  <span v-else class="text-green-500 text-sm block mx-a">
+    密码符合要求
+  </span>
   <div class="flex flex-row justify-between">
       <div class="mx-a">
         <input type="checkbox" ref="rememberMe">
