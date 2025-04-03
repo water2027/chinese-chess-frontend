@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
-import { ApiBus } from '@/utils/eventEmitter'
+import apiBus from '@/utils/apiBus'
 import channel from '@/utils/channel'
 
 const router = createRouter({
@@ -63,16 +63,15 @@ const logout = () => {
   router.push('/auth/login')
 }
 
-ApiBus.on('API:UN_AUTH', () => {
+apiBus.on('API:UN_AUTH', () => {
   logout()
 })
 
-ApiBus.on('API:LOGOUT', () => {
+apiBus.on('API:LOGOUT', () => {
   logout()
 })
 
-ApiBus.on('API:LOGIN', (req) => {
-  if(req().stop) return
+apiBus.on('API:LOGIN', (req) => {
   router.push('/')
 })
 

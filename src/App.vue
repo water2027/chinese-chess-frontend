@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { useWebSocket } from './websocket'
 import { showMsg } from './components/MessageBox'
-import { ApiBus } from './utils/eventEmitter'
+import apiBus from './utils/apiBus'
 import { onMounted, onUnmounted, provide, ref } from 'vue'
 import { useUserStore } from './store/useStore'
 import { login } from './api/user/login'
 useUserStore()
-ApiBus.on('API:FAIL', (req) => {
-  const { message } = req()
+apiBus.on('API:FAIL', (req) => {
+  const { message } = req
   showMsg(message)
 })
 
@@ -16,8 +16,8 @@ provide('ws', ws)
 
 const WebsocketURL = import.meta.env.VITE_WEBSOCKET_URL || 'ws://localhost:8080/ws'
 
-ApiBus.on('API:LOGIN', (req) => {
-  const { token } = req()
+apiBus.on('API:LOGIN', (req) => {
+  const { token } = req
   ws.connect(`${WebsocketURL}?token=${token}`)
 })
 
@@ -33,7 +33,7 @@ onMounted(async () => {
   const password = localStorage.getItem('password')
   if (email && password) {
     const resp = await login({ email, password })
-    ApiBus.emit('API:LOGIN', () => ({ ...resp, stop: true }))
+    apiBus.emit('API:LOGIN', { ...resp, stop: true })
   }
   handleResize()
   window.addEventListener('resize', handleResize)

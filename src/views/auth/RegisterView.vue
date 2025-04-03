@@ -9,7 +9,7 @@ import { showMsg } from '@/components/MessageBox.tsx'
 import { register } from '@/api/user/register'
 import { sendCode } from '@/api/user/send_code'
 
-import { ApiBus } from '@/utils/eventEmitter'
+import apiBus from '@/utils/apiBus'
 
 const rememberMe = useTemplateRef('rememberMe')
 
@@ -92,7 +92,7 @@ const registerAction = async () => {
       localStorage.setItem('password', password)
     }
     console.log('register')
-    ApiBus.emit('API:LOGIN', () => resp)
+    apiBus.emit('API:LOGIN',resp)
   } catch (error) {
     console.error('Register failed:', error)
     showMsg(error as string)

@@ -7,7 +7,7 @@ import { useFormExam } from '@/composables/FormExam'
 import { showMsg } from '@/components/MessageBox.tsx'
 
 import { login } from '@/api/user/login'
-import { ApiBus } from '@/utils/eventEmitter'
+import apiBus from '@/utils/apiBus'
 
 const rememberMe = useTemplateRef('rememberMe')
 
@@ -37,7 +37,7 @@ const loginAction = async () => {
   try {
     const resp = await login({ email, password })
   
-    ApiBus.emit('API:LOGIN', () => resp)
+    apiBus.emit('API:LOGIN', resp)
   
     if(rememberMe.value?.checked) {
       localStorage.setItem('email', email)

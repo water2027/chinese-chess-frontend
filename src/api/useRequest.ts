@@ -1,6 +1,6 @@
 import axios, { type AxiosRequestConfig } from 'axios'
 
-import { ApiBus } from '@/utils/eventEmitter'
+import apiBus from '@/utils/apiBus'
 import { useUserStore } from '@/store/useStore'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api'
@@ -31,14 +31,18 @@ instance.interceptors.request.use((config) => {
 
 const errorCodeHandler: Record<number, ErrorHandler> = {
   // - token无效或没有token 1 (前端需要重新登录)
+  0: (resp?: Response) => {
+    const message = resp?.message || 'fail'
+    apiBus.emit('API:FAIL', { message })
+  },
   1: () => {
-    ApiBus.emit('API:UN_AUTH')
+    apiBus.emit('API:UN_AUTH', null)
   },
 }
 
 const httpCodeHandler: Record<number, ErrorHandler> = {
   404: () => {
-    ApiBus.emit('API:NOT_FOUND')
+    apiBus.emit('API:NOT_FOUND', null)
   },
   500: () => {},
 }
@@ -48,7 +52,7 @@ instance.interceptors.response.use(
     const { code, data, message } = resp.data as Response
     if (code < 100) {
       // 业务错误处理
-      errorCodeHandler[code]?.(data)
+      errorCodeHandler[code]?.(resp.data)
       return Promise.reject(message)
     }
     return data
