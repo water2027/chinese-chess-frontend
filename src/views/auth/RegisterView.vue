@@ -13,6 +13,8 @@ import { ApiBus } from '@/utils/eventEmitter'
 
 const rememberMe = useTemplateRef('rememberMe')
 
+const passwordReg = /^\S*(?=\S{6,})(?=\S*\d)(?=\S*[A-Z])(?=\S*[a-z])(?=\S*[!@#$%^&*? ])\S*$/
+
 const registerForm = ref<CustomFormData[]>([
   {
     id: 'username',
@@ -32,12 +34,14 @@ const registerForm = ref<CustomFormData[]>([
     value: '',
     label: '密码',
     type: 'password',
+    reg: passwordReg,
     autocomplete: 'new-password',
   },
   {
     id: 'password2',
     value: '',
     label: '确认密码',
+    reg:passwordReg,
     type: 'password',
   },
   {
@@ -58,7 +62,7 @@ const correct = useFormExam(registerForm)
 const passwordIsCorrect = computed(() => {
   const password = registerForm.value[2].value
   const password2 = registerForm.value[3].value
-  return password === password2 && /^\S*(?=\S{6,})(?=\S*\d)(?=\S*[A-Z])(?=\S*[a-z])(?=\S*[!@#$%^&*? ])\S*$/.test(password)
+  return password === password2 && passwordReg.test(password)
 })
 
 const sendCodeAction = async () => {
@@ -91,7 +95,7 @@ const registerAction = async () => {
     ApiBus.emit('API:LOGIN', () => resp)
   } catch (error) {
     console.error('Register failed:', error)
-    showMsg(error)
+    showMsg(error as string)
     return
   }
 }
