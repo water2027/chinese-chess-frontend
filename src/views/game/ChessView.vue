@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { Ref } from 'vue'
-import { inject, onMounted, useTemplateRef } from 'vue'
+import { inject, onMounted, useTemplateRef, watch } from 'vue'
 
 import ChessBoard from '@/composables/ChessBoard'
 import { GameBus } from '@/utils/eventEmitter'
@@ -10,8 +10,19 @@ const chesses = useTemplateRef('chesses')
 
 const isPC = inject('isPC') as Ref<boolean>
 
+let chessBoard: ChessBoard
+
+const decideSize = (isPCBool: boolean) => {
+  return isPCBool ? 70 : 40
+}
+
+watch(isPC, (newIsPC) => {
+  const gridSize = decideSize(newIsPC)
+  chessBoard?.redraw(gridSize)
+})
+
 onMounted(() => {
-  const gridSize = isPC.value ? 70 : 40
+  const gridSize = decideSize(isPC.value)
   const canvasBackground = background.value as HTMLCanvasElement
   const canvasChesses = chesses.value as HTMLCanvasElement
   const ctxBackground = canvasBackground.getContext('2d')
@@ -21,7 +32,7 @@ onMounted(() => {
     throw new Error('Failed to get canvas context')
   }
 
-  const chessBoard = new ChessBoard(canvasBackground, canvasChesses, 'red', gridSize)
+  chessBoard = new ChessBoard(canvasBackground, canvasChesses, 'red', gridSize)
   chessBoard.start('red', false)
   GameBus.on('GAME:START', (req) => {
     chessBoard.stop()

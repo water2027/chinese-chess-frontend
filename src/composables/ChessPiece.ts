@@ -13,7 +13,6 @@ class ChessPiece {
   public color: ChessColor
   public role: ChessRole = 'enemy'
   public position: ChessPosition
-  private radius: number = 25 // 棋子半径
   private gridSize: number = 50 // 棋盘格子大小
   public isSelected: boolean
   private ctx: CanvasRenderingContext2D
@@ -25,7 +24,7 @@ class ChessPiece {
     color: ChessColor,
     role: ChessRole,
     position: ChessPosition,
-    gridSize: number = 60,
+    gridSize: number,
   ) {
     this.ctx = ctx
     this.id = id
@@ -35,7 +34,10 @@ class ChessPiece {
     this.position = position
     this.isSelected = false
     this.gridSize = gridSize
-    this.radius = gridSize / 2 // 棋子半径
+  }
+
+  get radius() {
+    return this.gridSize / 2
   }
 
   public select() {
@@ -58,7 +60,8 @@ class ChessPiece {
     this.draw()
   }
 
-  public draw() {
+  public draw(size:number = this.gridSize) {
+    this.gridSize = size
     const ctx = this.ctx
     const x = this.position.x * this.gridSize + this.gridSize / 2
     const y = this.position.y * this.gridSize + this.gridSize / 2

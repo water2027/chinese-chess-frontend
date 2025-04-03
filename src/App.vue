@@ -25,7 +25,7 @@ const isPC = ref(false)
 provide('isPC', isPC)
 
 const handleResize = () => {
-  isPC.value = window.innerWidth > 768
+  isPC.value = window.innerWidth > 640
 }
 
 onMounted(async () => {

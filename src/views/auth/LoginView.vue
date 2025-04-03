@@ -45,7 +45,7 @@ const loginAction = async () => {
     }
   } catch (error) {
     console.error('Login failed:', error)
-    showMsg(error)
+    showMsg(error as string)
     return 
   }
 }

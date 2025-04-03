@@ -13,8 +13,6 @@ class ChessBoard {
   // 棋子
   private chessesElement: HTMLCanvasElement
   private chesses: CanvasRenderingContext2D
-  private width: number
-  private height: number
   private selectedPiece: ChessPiece | null = null
   private color: ChessColor
   private currentRole: ChessRole
@@ -28,20 +26,23 @@ class ChessBoard {
   ) {
     this.boardElement = boardElement
     this.chessesElement = chessesElement
-    this.width = gridSize * 9
-    this.height = gridSize * 10
-    this.boardElement.width = this.width
-    this.boardElement.height = this.height
-    this.chessesElement.width = this.width
-    this.chessesElement.height = this.height
-    this.background = this.boardElement.getContext('2d') as CanvasRenderingContext2D
-    this.chesses = this.chessesElement.getContext('2d') as CanvasRenderingContext2D
     this.color = selfColor
     this.currentRole = selfColor === 'red' ? 'self' : 'enemy'
     this.gridSize = gridSize
     this.board = new Array(9).fill(null).map(() => {
       return {}
     })
+    this.initCanvasElement()
+    this.background = this.boardElement.getContext('2d') as CanvasRenderingContext2D
+    this.chesses = this.chessesElement.getContext('2d') as CanvasRenderingContext2D
+  }
+
+  get width():number {
+    return this.gridSize * 9
+  }
+
+  get height():number {
+    return this.gridSize * 10
   }
 
   private clickHandler(event: MouseEvent) {
@@ -156,11 +157,8 @@ class ChessBoard {
 
   public stop() {
     this.chessesElement.removeEventListener('click', this.clickHandler.bind(this))
-    this.background.clearRect(0, 0, this.width, this.height)
-    this.chesses.clearRect(0, 0, this.width, this.height)
-    // GameBus.off('CHESS:MOVE:START', this.listenMove.bind(this))
-    // GameBus.off('CHESS:CHECK', this.listenCheck.bind(this))
-    // GameBus.off('CHESS:QUERY', this.listenQuery.bind(this))
+    this.clear()
+    GameBus.off('CHESS:MOVE', this.listenMove.bind(this))
   }
 
   private listenMove(req: () => { from: ChessPosition; to: ChessPosition }) {
@@ -382,11 +380,31 @@ class ChessBoard {
     }
   }
 
+  private initCanvasElement() {
+    this.boardElement.width = this.width
+    this.boardElement.height = this.height
+    this.chessesElement.width = this.width
+    this.chessesElement.height = this.height
+  }
+
+  public redraw(newSize:number = this.gridSize) {
+    this.clear()
+    this.gridSize = newSize
+    this.initCanvasElement()
+    this.drawBoard()
+    this.drawChesses()
+  }
+
+  private clear() {
+    this.background.clearRect(0, 0, this.width, this.height)
+    this.chesses.clearRect(0, 0, this.width, this.height)
+  }
+
   private drawChesses() {
     this.chesses.clearRect(0, 0, this.width, this.height)
     this.board.forEach((row, x) => {
       Object.values(row).forEach((piece) => {
-        piece.draw()
+        piece.draw(this.gridSize)
       })
     })
   }
