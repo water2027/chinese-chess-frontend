@@ -4,6 +4,7 @@ import { ref, useTemplateRef } from 'vue'
 import FormContainer from '@/components/FormContainer.vue'
 import type { CustomFormData } from '@/composables/FormExam'
 import { useFormExam } from '@/composables/FormExam'
+import { showMsg } from '@/components/MessageBox.tsx'
 
 import { login } from '@/api/user/login'
 import { ApiBus } from '@/utils/eventEmitter'
@@ -44,6 +45,7 @@ const loginAction = async () => {
     }
   } catch (error) {
     console.error('Login failed:', error)
+    showMsg(error)
     return 
   }
 }

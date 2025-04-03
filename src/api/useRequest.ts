@@ -19,7 +19,7 @@ type ErrorHandler = (resp?: Response) => void
 
 instance.interceptors.request.use((config) => {
   const { url } = config
-  if (!url || !url.startsWith('/public')) {
+  if (!url || url.startsWith('/public')) {
     // 登录接口
     return config
   }

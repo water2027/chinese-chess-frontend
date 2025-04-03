@@ -4,6 +4,7 @@ import { computed, ref, useTemplateRef } from 'vue'
 import FormContainer from '@/components/FormContainer.vue'
 import type { CustomFormData } from '@/composables/FormExam'
 import { useFormExam } from '@/composables/FormExam'
+import { showMsg } from '@/components/MessageBox.tsx'
 
 import { register } from '@/api/user/register'
 import { sendCode } from '@/api/user/send_code'
@@ -86,10 +87,11 @@ const registerAction = async () => {
       localStorage.setItem('email', email)
       localStorage.setItem('password', password)
     }
-  
+    console.log('register')
     ApiBus.emit('API:LOGIN', () => resp)
   } catch (error) {
     console.error('Register failed:', error)
+    showMsg(error)
     return
   }
 }
