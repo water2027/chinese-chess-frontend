@@ -14,7 +14,7 @@ class ChessBoard {
   private chessesElement: HTMLCanvasElement
   private chesses: CanvasRenderingContext2D
   private selectedPiece: ChessPiece | null = null
-  private color: ChessColor
+  private selfColor: ChessColor
   private currentRole: ChessRole
   private isNetPlay: boolean = false
 
@@ -26,7 +26,7 @@ class ChessBoard {
   ) {
     this.boardElement = boardElement
     this.chessesElement = chessesElement
-    this.color = selfColor
+    this.selfColor = selfColor
     this.currentRole = selfColor === 'red' ? 'self' : 'enemy'
     this.gridSize = gridSize
     this.board = new Array(9).fill(null).map(() => {
@@ -51,9 +51,9 @@ class ChessBoard {
     const y = Math.floor((event.clientY - rect.top) / this.gridSize)
 
     // 自己是什么颜色
-    const selfColor = this.color
+    const selfColor = this.selfColor
     // 对方是什么颜色
-    const enemyColor = this.color === 'red' ? 'black' : 'red'
+    const enemyColor = this.selfColor === 'red' ? 'black' : 'red'
 
     // 棋子点击事件
     const piece = this.board[x][y]
@@ -104,7 +104,7 @@ class ChessBoard {
     }
     if (targetPiece) {
       if (targetPiece instanceof King) {
-        const winner = this.currentRole === 'self' ? this.color : targetPiece.color
+        const winner = this.currentRole === 'self' ? this.selfColor : targetPiece.color
         GameBus.emit('GAME:END', () => ({ winner, isNet: this.isNetPlay }))
         this.end(winner)
       }
@@ -131,7 +131,7 @@ class ChessBoard {
       }
     } else {
       // 联网
-      if (piece.color !== this.color) {
+      if (piece.color !== this.selfColor) {
         return
       }
     }
@@ -143,7 +143,7 @@ class ChessBoard {
 
   public start(color: ChessColor, isNet: boolean) {
     this.isNetPlay = isNet
-    this.color = color
+    this.selfColor = color
     this.currentRole = color === 'red' ? 'self' : 'enemy'
     this.board = new Array(9).fill(null).map(() => {
       return {}
@@ -179,7 +179,7 @@ class ChessBoard {
         this.chesses,
         id,
         'Rook',
-        this.color,
+        this.selfColor,
         'self',
         x,
         this.gridSize,
@@ -194,7 +194,7 @@ class ChessBoard {
         this.chesses,
         id,
         'Horse',
-        this.color,
+        this.selfColor,
         'self',
         x,
         this.gridSize,
@@ -209,7 +209,7 @@ class ChessBoard {
         this.chesses,
         id,
         'Bishop',
-        this.color,
+        this.selfColor,
         'self',
         x,
         this.gridSize,
@@ -224,7 +224,7 @@ class ChessBoard {
         this.chesses,
         id,
         'Advisor',
-        this.color,
+        this.selfColor,
         'self',
         x,
         this.gridSize,
@@ -239,7 +239,7 @@ class ChessBoard {
         this.chesses,
         id,
         'Cannon',
-        this.color,
+        this.selfColor,
         'self',
         x,
         this.gridSize,
@@ -254,7 +254,7 @@ class ChessBoard {
         this.chesses,
         id,
         'Pawn',
-        this.color,
+        this.selfColor,
         'self',
         x,
         this.gridSize,
@@ -269,7 +269,7 @@ class ChessBoard {
         this.chesses,
         id,
         'King',
-        this.color,
+        this.selfColor,
         'self',
         x,
         this.gridSize,
@@ -279,7 +279,7 @@ class ChessBoard {
     }
 
     // 反方棋子
-    const enemyColor = this.color === 'red' ? 'black' : 'red'
+    const enemyColor = this.selfColor === 'red' ? 'black' : 'red'
     for (let i = 0; i < 2; ++i) {
       const x = i * 8 + 0
       const piece = ChessFactory.createChessPiece(
