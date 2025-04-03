@@ -1,3 +1,4 @@
+import { showMsg } from '@/components/MessageBox'
 import { ChessPiece, ChessFactory, King } from './ChessPiece'
 import type { ChessColor, Board, ChessRole, ChessPosition } from './ChessPiece'
 import Drawer from './drawer'
@@ -41,7 +42,6 @@ class ChessBoard {
     this.board = new Array(9).fill(null).map(() => {
       return {}
     })
-
   }
 
   private clickHandler(event: MouseEvent) {
@@ -59,11 +59,12 @@ class ChessBoard {
     if (this.selectedPiece) {
       if (!piece || piece.color !== this.selectedPiece.color) {
         const curPiece = this.selectedPiece
-        GameBus.emit('CHESS:MOVE:START', () => ({
-          from: curPiece.position,
-          to: { x, y },
-          isNet: this.isNetPlay,
-        }))
+        // GameBus.emit('CHESS:MOVE:START', () => ({
+        //   from: curPiece.position,
+        //   to: { x, y },
+        //   isNet: this.isNetPlay,
+        // }))
+        this.move(curPiece.position, { x, y }, this.isNetPlay)
         this.selectedPiece = null
         return
       }
@@ -84,11 +85,46 @@ class ChessBoard {
     }
   }
 
+  private move(from: ChessPosition, to: ChessPosition, isNet: Boolean) {
+    const piece = this.board[from.x][from.y]
+    const targetPiece = this.board[to.x][to.y]
+    if (!piece) {
+      return
+    }
+
+    if (!piece.isMoveValid(to, this.board)) {
+      return
+    }
+
+    piece.move(to)
+
+    // 只有自己走才发送走子事件
+    if (this.currentRole === 'self') {
+      GameBus.emit('CHESS:MOVE:END', () => ({
+        from,
+        to,
+        isNet: this.isNetPlay,
+      }))
+    }
+    if (targetPiece) {
+      if (targetPiece instanceof King) {
+        const winner = this.currentRole === 'self' ? this.color : targetPiece.color
+        GameBus.emit('GAME:END', () => ({ winner, isNet: this.isNetPlay }))
+        this.end(winner)
+      }
+    }
+    this.currentRole = this.currentRole === 'self' ? 'enemy' : 'self'
+    delete this.board[from.x][from.y]
+    this.board[to.x][to.y] = piece
+  }
+
   private listenClick() {
     this.chessesElement.addEventListener('click', this.clickHandler.bind(this))
-    GameBus.on('GAME:END', () => {
-      this.chessesElement.removeEventListener('click', this.clickHandler.bind(this))
-    })
+  }
+
+  private end(winner: string) {
+    this.chessesElement.removeEventListener('click', this.clickHandler.bind(this))
+    showMsg(winner)
   }
 
   private selectPiece(piece: ChessPiece) {
@@ -127,69 +163,18 @@ class ChessBoard {
     this.chessesElement.removeEventListener('click', this.clickHandler.bind(this))
     this.background.clearRect(0, 0, this.width, this.height)
     this.chesses.clearRect(0, 0, this.width, this.height)
-    GameBus.off('CHESS:MOVE:START', this.listenMove.bind(this))
-    GameBus.off('CHESS:CHECK', this.listenCheck.bind(this))
-    GameBus.off('CHESS:QUERY', this.listenQuery.bind(this))
+    // GameBus.off('CHESS:MOVE:START', this.listenMove.bind(this))
+    // GameBus.off('CHESS:CHECK', this.listenCheck.bind(this))
+    // GameBus.off('CHESS:QUERY', this.listenQuery.bind(this))
   }
 
-  private listenMove(req:() => { from: ChessPosition; to: ChessPosition }) {
-    const { from: lastPosition, to: newPosition } = req()
-    const piece = this.board[lastPosition.x][lastPosition.y]
-    const targetPiece = this.board[newPosition.x][newPosition.y]
-    if (!piece) {
-      return
-    }
-
-    if (!piece.move(newPosition)) {
-      return
-    }
-
-    // 只有自己走才发送走子事件
-    if (this.currentRole === 'self') {
-      GameBus.emit('CHESS:MOVE:END', () => ({
-        from: lastPosition,
-        to: newPosition,
-        isNet: this.isNetPlay,
-      }))
-    }
-    if (targetPiece) {
-      if (targetPiece instanceof King) {
-        const winner = this.currentRole === 'self' ? this.color : targetPiece.color
-        GameBus.emit('GAME:END', () => ({ winner, isNet: this.isNetPlay }))
-      }
-    }
-    this.currentRole = this.currentRole === 'self' ? 'enemy' : 'self'
-    delete this.board[lastPosition.x][lastPosition.y]
-    this.board[newPosition.x][newPosition.y] = piece
-  }
-
-  private listenCheck(req:() => ChessPosition[], resp:(num: number) => void) {
-    const arr = req()
-    let nums = 0
-    for (const p of arr) {
-      const { x, y } = p
-      const piece = this.board[x][y]
-      if (piece) {
-        nums++
-      }
-    }
-    resp(nums)
-  }
-
-  private listenQuery(req:() => ChessPosition, resp:(piece: ChessPiece) => void) {
-    const { x, y } = req()
-    const piece = this.board[x][y]
-    if (piece) {
-      resp(piece)
-    }
+  private listenMove(req: () => { from: ChessPosition; to: ChessPosition }) {
+    const { from, to } = req()
+    this.move(from, to, true)
   }
 
   private listenEvent() {
-    GameBus.on('CHESS:MOVE:START', this.listenMove.bind(this))
-
-    GameBus.on('CHESS:CHECK', this.listenCheck.bind(this))
-
-    GameBus.on('CHESS:QUERY', this.listenQuery.bind(this))
+    GameBus.on('CHESS:MOVE', this.listenMove.bind(this))
   }
 
   private initChesses() {

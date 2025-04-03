@@ -1,5 +1,5 @@
 const ApiEvent = ['API:UN_AUTH', 'API:NOT_FOUND', 'API:LOGOUT', 'API:FAIL', 'API:LOGIN'] as const
-const ChessEvent = ['MATCH:SUCCESS', 'GAME:START', 'GAME:END', 'CHESS:MOVE:START', 'CHESS:MOVE:END', 'CHESS:CHECK', 'CHESS:QUERY'] as const
+const ChessEvent = ['MATCH:SUCCESS', 'GAME:START', 'GAME:END', 'CHESS:MOVE', 'CHESS:MOVE:END', 'CHESS:CHECK', 'CHESS:QUERY'] as const
 
 type RequestCallback = (...args: any[]) => any
 type ResponseCallback = (...args: any[]) => any

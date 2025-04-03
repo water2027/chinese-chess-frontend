@@ -46,7 +46,7 @@ const eventHandler: EventHandler = (data) => {
       from = translateChessPosition(from!)
       to = translateChessPosition(to!)
       if (from && to) {
-        GameBus.emit('CHESS:MOVE:START', () => ({ from, to }))
+        GameBus.emit('CHESS:MOVE', () => ({ from, to }))
       } else {
         console.error('Invalid move data:', data)
       }

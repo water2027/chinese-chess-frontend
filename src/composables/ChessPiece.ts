@@ -39,7 +39,7 @@ class ChessPiece {
   }
 
   public select() {
-    if(this.isSelected) return
+    if (this.isSelected) return
     this.isSelected = true
     // 闪烁效果
     let count = 0
@@ -93,9 +93,6 @@ class ChessPiece {
   // 坐标由棋盘处理，这里接收的是处理好的坐标
   // 这里的坐标是棋盘坐标系，0-8,0-9
   public move(newPosition: ChessPosition) {
-    if (!this.isMoveValid(newPosition)) {
-      return false
-    }
     // 清除原来位置
     this.clearFromCanvas()
     // 更新位置
@@ -105,7 +102,7 @@ class ChessPiece {
     return true
   }
 
-  public isMoveValid(newPosition: ChessPosition): boolean {
+  public isMoveValid(newPosition: ChessPosition, board?: Board): boolean {
     const { x, y } = newPosition
     if (x < 0 || x > 8 || y < 0 || y > 9) {
       return false
@@ -130,7 +127,7 @@ class King extends ChessPiece {
     super(ctx, id, name, color, role, position, gridSize)
   }
 
-  public isMoveValid(newPosition: ChessPosition): boolean {
+  public isMoveValid(newPosition: ChessPosition, board: Board): boolean {
     if (!super.isMoveValid(newPosition)) {
       return false
     }
@@ -139,28 +136,16 @@ class King extends ChessPiece {
       return false
     }
 
-    const arr: ChessPosition[] = []
-    for (let i = Math.min(this.position.y, y) + 1; i < Math.max(this.position.y, y); i++) {
-      arr.push({ x: this.position.x, y: i })
-    }
     let nums = 0
-    GameBus.emit(
-      'CHESS:CHECK',
-      () => arr,
-      (n) => {
-        nums = n
-      },
-    )
+    // 检查路径上是否有棋子
+    for (let i = Math.min(this.position.y, y) + 1; i < Math.max(this.position.y, y); i++) {
+      if (board[this.position.x][i]) {
+        nums++
+      }
+    }
     if (nums === 0) {
-      let piece: any
-      GameBus.emit(
-        'CHESS:QUERY',
-        () => newPosition,
-        (p) => {
-          piece = p
-        },
-      )
-      if (piece && piece instanceof King) {
+      const targetPiece = board[x][y]
+      if (targetPiece && targetPiece instanceof King) {
         return true
       }
     }
@@ -192,7 +177,7 @@ class Advisor extends ChessPiece {
     super(ctx, id, name, color, role, { x, y }, gridSize)
   }
 
-  public isMoveValid(newPosition: ChessPosition): boolean {
+  public isMoveValid(newPosition: ChessPosition, board?: Board): boolean {
     if (!super.isMoveValid(newPosition)) {
       return false
     }
@@ -229,7 +214,7 @@ class Bishop extends ChessPiece {
     super(ctx, id, name, color, role, { x, y }, gridSize)
   }
 
-  public isMoveValid(newPosition: ChessPosition): boolean {
+  public isMoveValid(newPosition: ChessPosition, board: Board): boolean {
     if (!super.isMoveValid(newPosition)) {
       return false
     }
@@ -246,15 +231,7 @@ class Bishop extends ChessPiece {
 
     const midX = (this.position.x + x) / 2
     const midY = (this.position.y + y) / 2
-    let nums
-    GameBus.emit(
-      'CHESS:CHECK',
-      () => [{ x: midX, y: midY }],
-      (n) => {
-        nums = n
-      },
-    )
-    if (nums === undefined || nums > 0) {
+    if (board[midX][midY]) {
       return false
     }
     return true
@@ -275,7 +252,7 @@ class Pawn extends ChessPiece {
     super(ctx, id, name, color, role, { x, y }, gridSize)
   }
 
-  public isMoveValid(newPosition: ChessPosition): boolean {
+  public isMoveValid(newPosition: ChessPosition, board?: Board): boolean {
     if (!super.isMoveValid(newPosition)) {
       return false
     }
@@ -332,7 +309,7 @@ class Rook extends ChessPiece {
     super(ctx, id, name, color, role, { x, y }, gridSize)
   }
 
-  public isMoveValid(newPosition: ChessPosition): boolean {
+  public isMoveValid(newPosition: ChessPosition, board: Board): boolean {
     if (!super.isMoveValid(newPosition)) {
       return false
     }
@@ -343,24 +320,23 @@ class Rook extends ChessPiece {
       return false
     }
     // 检查路径上是否有棋子
+    let has = false
     if (x === this.position.x) {
       for (let i = Math.min(this.position.y, y) + 1; i < Math.max(this.position.y, y); i++) {
-        arr.push({ x: this.position.x, y: i })
+        if (board[this.position.x][i]) {
+          has = true
+          break
+        }
       }
     } else {
       for (let i = Math.min(this.position.x, x) + 1; i < Math.max(this.position.x, x); i++) {
-        arr.push({ x: i, y: this.position.y })
+        if (board[i][this.position.y]) {
+          has = true
+          break
+        }
       }
     }
-    let nums
-    GameBus.emit(
-      'CHESS:CHECK',
-      () => arr,
-      (n) => {
-        nums = n
-      },
-    )
-    if (nums === undefined || nums > 0) {
+    if (has) {
       return false
     }
 
@@ -382,7 +358,7 @@ class Horse extends ChessPiece {
     super(ctx, id, name, color, role, { x, y }, gridSize)
   }
 
-  public isMoveValid(newPosition: ChessPosition): boolean {
+  public isMoveValid(newPosition: ChessPosition, board: Board): boolean {
     if (!super.isMoveValid(newPosition)) {
       return false
     }
@@ -404,15 +380,7 @@ class Horse extends ChessPiece {
       const directionY = y - this.position.y > 0 ? 1 : -1
       checkPosition = { x: this.position.x, y: this.position.y + directionY }
     }
-    let nums
-    GameBus.emit(
-      'CHESS:CHECK',
-      () => [checkPosition],
-      (n) => {
-        nums = n
-      },
-    )
-    if (nums === undefined || nums > 0) {
+    if (board[checkPosition.x][checkPosition.y]) {
       return false
     }
 
@@ -435,7 +403,7 @@ class Cannon extends ChessPiece {
     super(ctx, id, name, color, role, { x, y }, gridSize)
   }
 
-  public isMoveValid(newPosition: ChessPosition): boolean {
+  public isMoveValid(newPosition: ChessPosition, board: Board): boolean {
     if (!super.isMoveValid(newPosition)) {
       return false
     }
@@ -448,25 +416,27 @@ class Cannon extends ChessPiece {
     }
 
     // 检查路径上是否有棋子
+    let nums = 0
     if (x === this.position.x) {
       for (let i = Math.min(this.position.y, y) + 1; i < Math.max(this.position.y, y); i++) {
-        arr.push({ x: this.position.x, y: i })
+        if (board[this.position.x][i]) {
+          nums++
+        }
       }
     } else {
       for (let i = Math.min(this.position.x, x) + 1; i < Math.max(this.position.x, x); i++) {
-        arr.push({ x: i, y: this.position.y })
+        if (board[i][this.position.y]) {
+          nums++
+        }
       }
     }
-    arr.push(newPosition)
-    let nums
-    GameBus.emit(
-      'CHESS:CHECK',
-      () => arr,
-      (n) => {
-        nums = n
-      },
-    )
-    if (nums === undefined || (nums !== 2 && nums !== 0)) {
+    console.log(board[x])
+    const piece = board[x][y]
+    console.log(piece)
+    if (piece) {
+      nums++
+    }
+    if (nums !== 2 && nums !== 0) {
       return false
     }
 
